@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OX-Bridge Admin Dashboard</title>
+<style>
+:root{
+  --bg:#f4f6f4; --surface:#fff; --border:#dde3dd; --text:#1a2a1a; --muted:#6b7d6b;
+  --green:#006400; --green-dark:#004d00; --gold:#c9a227; --danger:#dc2626; --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;}
+body{background:var(--bg);color:var(--text);}
+.hidden{display:none !important;}
+
+/* Login gate */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:var(--surface);border-radius:16px;padding:36px 28px;max-width:380px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.1);text-align:center;}
+.login-card h1{font-size:1.3rem;color:var(--green);margin-bottom:6px;}
+.login-card p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+
+/* Layout */
+#app-screen{display:none;min-height:100vh;}
+.sidebar{width:230px;background:var(--green-dark);color:#fff;padding:20px 0;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;}
+.sidebar h2{font-size:1.05rem;padding:0 20px 16px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:10px;}
+.nav-item{padding:12px 20px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.75);border-left:3px solid transparent;transition:all .15s;}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:var(--gold);}
+.main{margin-left:230px;padding:28px 32px;max-width:900px;}
+.main h2{font-size:1.4rem;margin-bottom:4px;color:var(--green-dark);}
+.main .sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+/* Cards & forms */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.card h3{font-size:15px;margin-bottom:16px;color:var(--text);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group{margin-bottom:12px;}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:5px;}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--green);}
+textarea{resize:vertical;min-height:60px;}
+.btn{padding:10px 20px;border-radius:8px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.9;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-ghost{background:var(--bg);color:var(--text);border:1.5px solid var(--border);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.btn-full{width:100%;}
+.msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+.msg.success{background:#e6f7e6;color:var(--green-dark);display:block;}
+.msg.error{background:#fdeaea;color:var(--danger);display:block;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:22px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.stat-box .num{font-size:1.6rem;font-weight:800;color:var(--green);}
+.stat-box .label{font-size:11.5px;color:var(--muted);margin-top:2px;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;background:var(--bg);font-size:11px;font-weight:700;color:var(--green);}
+
+/* usage bars */
+.section-title{font-size:13px;font-weight:700;color:var(--muted);margin:4px 0 10px;}
+.bar-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.bar-label{flex:0 0 200px;}
+.bar-label small{display:block;color:var(--muted);font-size:11px;}
+.bar-track{flex:1;height:8px;background:var(--bg);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--green);border-radius:6px;}
+.bar-val{flex:0 0 auto;min-width:48px;text-align:right;font-weight:700;}
+.subj-row{border-bottom:1px solid var(--border);padding:10px 0;}
+.subj-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px;}
+.subj-actions{display:flex;gap:6px;}
+.topic-list{margin:10px 0 0 12px;padding-left:12px;border-left:2px solid var(--border);}
+.topic-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;font-size:13px;}
+.tag.muted{color:var(--muted);}
+.tag.warn{color:var(--gold);}
+
+/* bulk textarea helper */
+.hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.hint code{background:var(--bg);padding:1px 5px;border-radius:4px;}
+
+@media(max-width:720px){
+  .sidebar{width:100%;position:relative;height:auto;}
+  .main{margin-left:0;padding:20px 16px;}
+  .form-row{grid-template-columns:1fr;}
+  .bar-label{flex-basis:120px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>OX-Bridge Admin</h1>
+    <p>Enter your admin key to manage content</p>
+    <div class="msg error" id="login-error"></div>
+    <div class="form-group" style="text-align:left;">
+      <label>Admin Key</label>
+      <input type="password" id="admin-key-input" placeholder="X-Admin-Key">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Enter Dashboard</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="sidebar">
+    <h2>OX-Bridge Admin</h2>
+    <div class="nav-item active" data-tab="overview" onclick="switchTab('overview')">Overview</div>
+    <div class="nav-item" data-tab="analytics" onclick="switchTab('analytics')">Usage & Activity</div>
+    <div class="nav-item" data-tab="users" onclick="switchTab('users')">Users</div>
+    <div class="nav-item" data-tab="messages" onclick="switchTab('messages')">Message Students</div>
+    <div class="nav-item" data-tab="add-question" onclick="switchTab('add-question')">Add Question</div>
+    <div class="nav-item" data-tab="bulk-questions" onclick="switchTab('bulk-questions')">Bulk Add Questions</div>
+    <div class="nav-item" data-tab="past-question" onclick="switchTab('past-question')">Add Past Question</div>
+    <div class="nav-item" data-tab="subjects-topics" onclick="switchTab('subjects-topics')">Subjects & Topics</div>
+    <div class="nav-item" data-tab="diagrams" onclick="switchTab('diagrams')">Attach Diagram</div>
+    <div class="nav-item" data-tab="theory" onclick="switchTab('theory')">WAEC/NECO Theory</div>
+    <div class="nav-item" data-tab="browse" onclick="switchTab('browse')">Browse Questions</div>
+    <div class="nav-item" style="margin-top:20px;color:rgba(255,255,255,.4);" onclick="doLogout()">Log Out</div>
+  </div>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="tab-panel" id="tab-overview">
+      <h2>Overview</h2>
+      <div class="sub">Quick snapshot of your users and content library</div>
+
+      <div class="section-title">Learning Hub</div>
+      <div class="stats-grid" id="hub-stats"><div class="stat-box"><div class="num">—</div><div class="label">Loading...</div></div></div>
+
+      <div class="section-title">AKSU Campus</div>
+      <div class="stats-grid" id="campus-stats"><div class="stat-box"><div class="num">—</div><div class="label">Loading...</div></div></div>
+      <div class="hint" id="overview-note" style="margin:-8px 0 20px;"></div>
+
+      <div class="section-title">Content</div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-box"><div class="num">—</div><div class="label">Total Questions</div></div>
+      </div>
+      <div class="card">
+        <h3>Questions by Subject & Level</h3>
+        <div id="stats-breakdown"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- USAGE & ACTIVITY -->
+    <div class="tab-panel hidden" id="tab-analytics">
+      <h2>Usage & Activity</h2>
+      <div class="sub">What students use, how often, and who is active each day (dates are UTC)</div>
+      <div class="card">
+        <div class="msg" id="an-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Period</label>
+            <select id="an-range" onchange="renderAnalytics()">
+              <option value="1">Today</option>
+              <option value="7" selected>Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="0">Everything loaded</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-ghost btn-sm" onclick="loadAnalytics(true)">Refresh</button>
+          </div>
+        </div>
+        <div class="hint" id="an-note"></div>
+      </div>
+      <div class="stats-grid" id="an-stats"></div>
+      <div class="card"><h3>Most used features</h3><div id="an-features"><p style="color:var(--muted);font-size:13px;">Loading...</p></div></div>
+      <div class="card"><h3>Most used endpoints</h3><div id="an-paths"></div></div>
+      <div class="card"><h3>Daily activity</h3><div style="overflow-x:auto;" id="an-daily"></div></div>
+      <div class="card"><h3>Most active students</h3><div style="overflow-x:auto;" id="an-top-users"></div></div>
+      <div class="card"><h3>Latest events</h3><div style="overflow-x:auto;" id="an-recent"></div></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-panel hidden" id="tab-users">
+      <h2>Users</h2>
+      <div class="sub">Look up one student's usage, or browse everyone who signed up</div>
+      <div class="card">
+        <h3>Look up a student</h3>
+        <div class="msg" id="usr-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Username</label><input id="usr-lookup" placeholder="exact username"></div>
+          <div class="form-group">
+            <label>App</label>
+            <select id="usr-app"><option value="auto">Auto-detect</option><option value="hub">Learning Hub</option><option value="campus">AKSU Campus</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="lookupUser()">View Usage</button>
+        <div id="usr-result" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>All students</h3>
+        <div class="msg" id="roster-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>App</label>
+            <select id="roster-app" onchange="loadRoster()"><option value="campus">AKSU Campus</option><option value="hub">Learning Hub</option></select>
+          </div>
+          <div class="form-group"><label>Search</label><input id="roster-search" placeholder="name, username, department" oninput="renderRoster()"></div>
+        </div>
+        <div style="overflow-x:auto;"><table id="roster-table"><tbody><tr><td style="color:var(--muted);">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- MESSAGE STUDENTS -->
+    <div class="tab-panel hidden" id="tab-messages">
+      <h2>Message Students</h2>
+      <div class="sub">The message appears inside the app for the student (not email or SMS)</div>
+      <div class="card">
+        <div class="msg" id="msgs-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>App</label>
+            <select id="msgs-app"><option value="campus">AKSU Campus</option><option value="hub">Learning Hub</option></select>
+          </div>
+          <div class="form-group">
+            <label>Send to</label>
+            <select id="msgs-target" onchange="document.getElementById('msgs-user-wrap').classList.toggle('hidden', this.value !== 'one')">
+              <option value="all">Every student (broadcast)</option><option value="one">One student</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group hidden" id="msgs-user-wrap"><label>Username</label><input id="msgs-user" placeholder="exact username"></div>
+        <div class="form-group"><label>Message</label><textarea id="msgs-text" maxlength="500" placeholder="e.g. New WAEC Chemistry lessons are now live!"></textarea></div>
+        <button class="btn btn-primary" onclick="sendMessage()">Send Message</button>
+      </div>
+    </div>
+
+    <!-- ADD SINGLE QUESTION -->
+    <div class="tab-panel hidden" id="tab-add-question">
+      <h2>Add a Question</h2>
+      <div class="sub">Adds to the main question bank (WAEC/JAMB/NECO practice quizzes)</div>
+      <div class="card">
+        <div class="msg" id="aq-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="aq-subject" placeholder="e.g. Mathematics"></div>
+          <div class="form-group"><label>Level</label><input id="aq-level" placeholder="e.g. SSS3"></div>
+        </div>
+        <div class="form-group"><label>Topic (optional)</label><input id="aq-topic" placeholder="e.g. Quadratic Equations"></div>
+        <div class="form-group"><label>Question Text</label><textarea id="aq-question"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Option A</label><input id="aq-a"></div>
+          <div class="form-group"><label>Option B</label><input id="aq-b"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Option C</label><input id="aq-c"></div>
+          <div class="form-group"><label>Option D</label><input id="aq-d"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Correct Answer</label>
+            <select id="aq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="form-group"><label>Source (optional)</label><input id="aq-source" placeholder="e.g. WAEC 2023"></div>
+        </div>
+        <div class="form-group"><label>Explanation (optional)</label><textarea id="aq-explanation"></textarea></div>
+        <button class="btn btn-primary" onclick="submitAddQuestion()">Add Question</button>
+      </div>
+    </div>
+
+    <!-- BULK ADD -->
+    <div class="tab-panel hidden" id="tab-bulk-questions">
+      <h2>Bulk Add Questions</h2>
+      <div class="sub">Paste a JSON array of questions, generated by DeepSeek/ChatGPT or your own script</div>
+      <div class="card">
+        <div class="msg" id="bulk-msg"></div>
+        <div class="form-group">
+          <label>Questions (JSON array)</label>
+          <textarea id="bulk-json" style="min-height:220px;font-family:monospace;font-size:12px;" placeholder='[
+  {
+    "subject": "Mathematics",
+    "level": "SSS3",
+    "topic": "Algebra",
+    "question_text": "Solve for x: 2x + 4 = 10",
+    "option_a": "3",
+    "option_b": "5",
+    "option_c": "2",
+    "option_d": "4",
+    "correct_answer": "A",
+    "explanation": "2x = 6, x = 3",
+    "source": "WAEC 2023"
+  }
+]'></textarea>
+          <div class="hint">Required fields per question: <code>subject</code>, <code>level</code>, <code>question_text</code>, <code>option_a</code>-<code>option_d</code>, <code>correct_answer</code>. Optional: <code>topic</code>, <code>explanation</code>, <code>source</code>.</div>
+        </div>
+        <button class="btn btn-primary" onclick="submitBulkQuestions()">Upload All Questions</button>
+      </div>
+    </div>
+
+    <!-- PAST QUESTION -->
+    <div class="tab-panel hidden" id="tab-past-question">
+      <h2>Add a Past Question</h2>
+      <div class="sub">Real WAEC/JAMB/NECO exam questions from a specific year</div>
+      <div class="card">
+        <div class="msg" id="pq-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type</label>
+            <select id="pq-exam"><option>WAEC</option><option>JAMB</option><option>NECO</option></select>
+          </div>
+          <div class="form-group"><label>Year</label><input id="pq-year" type="number" placeholder="e.g. 2023"></div>
+        </div>
+        <div class="form-group"><label>Subject</label><input id="pq-subject" placeholder="e.g. Physics"></div>
+        <div class="form-group"><label>Question Text</label><textarea id="pq-question"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Option A</label><input id="pq-a"></div>
+          <div class="form-group"><label>Option B</label><input id="pq-b"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Option C</label><input id="pq-c"></div>
+          <div class="form-group"><label>Option D</label><input id="pq-d"></div>
+        </div>
+        <div class="form-group">
+          <label>Correct Answer</label>
+          <select id="pq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+        </div>
+        <div class="form-group">
+          <label>Question Image (optional — for questions that need a diagram)</label>
+          <input type="file" id="pq-file" accept="image/*">
+          <div id="pq-preview" style="margin-top:10px;display:none;"><img id="pq-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <div class="form-group"><label>Explanation (optional)</label><textarea id="pq-explanation"></textarea></div>
+        <button class="btn btn-primary" onclick="submitPastQuestion()">Add Past Question</button>
+      </div>
+    </div>
+
+    <!-- SUBJECTS & TOPICS -->
+    <div class="tab-panel hidden" id="tab-subjects-topics">
+      <h2>Subjects & Topics</h2>
+      <div class="sub">Add a subject, then add topics with full lesson notes. Pick a WAEC or NECO track to build exam lessons.</div>
+
+      <div class="card">
+        <h3>Add a Subject</h3>
+        <div class="msg" id="subj-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Lesson Track</label>
+            <select id="subj-track">
+              <option value="">Regular class lesson</option>
+              <option value="WAEC">WAEC lesson</option>
+              <option value="NECO">NECO lesson</option>
+              <option value="WAEC/NECO">WAEC &amp; NECO lesson</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Level (optional for WAEC/NECO)</label><input id="subj-level" placeholder="e.g. SSS2"></div>
+        </div>
+        <div class="form-group"><label>Subject Name</label><input id="subj-name" placeholder="e.g. English Language"></div>
+        <div class="hint" style="margin:-4px 0 12px;">The track is saved with the level, e.g. <code>SSS3 WAEC</code>, so it still matches normal level filters.</div>
+        <button class="btn btn-primary btn-sm" onclick="submitAddSubject()">Add Subject</button>
+      </div>
+
+      <div class="card">
+        <h3>Add a Topic / Lesson</h3>
+        <div class="msg" id="topic-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject</label>
+            <select id="topic-subject-select"><option value="">Loading subjects...</option></select>
+          </div>
+          <div class="form-group"><label>Topic Title (keep it short)</label><input id="topic-title" placeholder="e.g. Essay Writing"></div>
+        </div>
+        <div class="form-group">
+          <label>Lesson Content (optional — long text is fine)</label>
+          <textarea id="topic-content" style="min-height:200px;" placeholder="Type or paste the lesson notes here..."></textarea>
+          <div class="hint" id="topic-content-count"></div>
+        </div>
+        <div class="form-group">
+          <label>By the end of this lesson, students should be able to (optional)</label>
+          <textarea id="topic-objectives" style="min-height:110px;" placeholder="One per line, e.g.&#10;Write a formal letter&#10;Structure an argumentative essay"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Diagram (optional)</label>
+          <input type="file" id="topic-file" accept="image/*">
+          <div id="topic-preview" style="margin-top:10px;display:none;"><img id="topic-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <button class="btn btn-primary" onclick="submitAddTopic()">Add Topic</button>
+        <div class="hint">The lesson content and objectives are saved with the topic, and the AI builds the student's lesson around them.</div>
+      </div>
+
+      <div class="card">
+        <h3>Existing Subjects</h3>
+        <div class="msg" id="subjlist-msg"></div>
+        <div class="form-group">
+          <label>Show</label>
+          <select id="subj-filter" onchange="renderSubjectList()">
+            <option value="">All subjects</option><option value="WAEC">WAEC lessons</option><option value="NECO">NECO lessons</option>
+          </select>
+        </div>
+        <div id="subject-list"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- DIAGRAMS -->
+    <div class="tab-panel hidden" id="tab-diagrams">
+      <h2>Attach a Diagram to a Topic</h2>
+      <div class="sub">Upload an image (via Cloudinary), then attach it to an existing topic. You can also add a short admin note that gets built into the AI's explanation for that topic.</div>
+      <div class="card">
+        <div class="msg" id="diagram-msg"></div>
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="diagram-subject-select" onchange="loadTopicsForDiagram()"><option value="">Loading subjects...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Topic</label>
+          <select id="diagram-topic-select"><option value="">Select a subject first</option></select>
+        </div>
+        <div class="form-group">
+          <label>Diagram Image</label>
+          <input type="file" id="diagram-file" accept="image/*">
+          <div id="diagram-preview" style="margin-top:10px;display:none;"><img id="diagram-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <div class="form-group"><label>Admin Note (optional — builds into the AI's explanation)</label><textarea id="diagram-notes" placeholder="e.g. Focus on the difference between axial and appendicular skeleton"></textarea></div>
+        <button class="btn btn-primary" onclick="submitDiagram()">Upload & Attach</button>
+      </div>
+    </div>
+
+    <!-- THEORY -->
+    <div class="tab-panel hidden" id="tab-theory">
+      <h2>Add WAEC/NECO Theory Question</h2>
+      <div class="sub">Essay/theory-style questions with a model answer</div>
+      <div class="card">
+        <div class="msg" id="theory-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type</label>
+            <select id="theory-exam"><option>WAEC</option><option>NECO</option></select>
+          </div>
+          <div class="form-group"><label>Year</label><input id="theory-year" type="number" placeholder="e.g. 2023"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="theory-subject" placeholder="e.g. Chemistry"></div>
+          <div class="form-group"><label>Topic (optional)</label><input id="theory-topic" placeholder="e.g. Titration"></div>
+        </div>
+        <div class="form-group"><label>Question Text</label><textarea id="theory-question"></textarea></div>
+        <div class="form-group"><label>Model Answer (optional)</label><textarea id="theory-answer"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Marks</label><input id="theory-marks" type="number" value="10"></div>
+          <div class="form-group">
+            <label>Diagram (optional)</label>
+            <input type="file" id="theory-file" accept="image/*">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitTheory()">Add Theory Question</button>
+      </div>
+    </div>
+
+    <!-- BROWSE -->
+    <div class="tab-panel hidden" id="tab-browse">
+      <h2>Browse Questions</h2>
+      <div class="sub">Search and check what's already in the question bank</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="browse-subject" placeholder="filter by subject"></div>
+          <div class="form-group"><label>Level</label><input id="browse-level" placeholder="filter by level"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadBrowseQuestions()">Search</button>
+        <div style="margin-top:16px;overflow-x:auto;">
+          <table id="browse-table">
+            <thead><tr><th>ID</th><th>Subject</th><th>Level</th><th>Question</th><th>Answer</th><th></th></tr></thead>
+            <tbody><tr><td colspan="6" style="color:var(--muted);">Search to see results</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = "https://ox-bridge-learning.onrender.com";
+let ADMIN_KEY = localStorage.getItem('oxbridge_admin_key') || '';
+
+function hdrs(){ return {"Content-Type":"application/json","X-Admin-Key":ADMIN_KEY}; }
+
+function doLogin(){
+  const key = document.getElementById('admin-key-input').value.trim();
+  if(!key){ showLoginError('Please enter your admin key'); return; }
+  ADMIN_KEY = key;
+  // Verify the key actually works before entering
+  fetch(`${API}/admin/questions/count`, {headers: hdrs()})
+    .then(r => {
+      if(r.status === 401){ showLoginError('Invalid admin key'); return; }
+      if(r.status === 500){ showLoginError('Server has no admin key configured'); return; }
+      localStorage.setItem('oxbridge_admin_key', key);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      loadOverview();
+      loadSubjectsIntoSelects();
+    })
+    .catch(() => showLoginError('Could not reach the server. Check your internet.'));
+}
+
+function showLoginError(msg){
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function doLogout(){
+  localStorage.removeItem('oxbridge_admin_key');
+  location.reload();
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+  if(tab === 'overview') loadOverview();
+  if(tab === 'analytics') loadAnalytics(false);
+  if(tab === 'users' && !ROSTER.loaded) loadRoster();
+  if(tab === 'subjects-topics') loadSubjectList();
+}
+
+function showMsg(id, text, type){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
+
+// Escapes text that comes from users (usernames, messages, paths) before it goes into innerHTML
+function esc(v){
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function safeJson(r){ try{ return await r.json(); }catch(e){ return {}; } }
+function statBox(num, label){ return `<div class="stat-box"><div class="num">${esc(num)}</div><div class="label">${esc(label)}</div></div>`; }
+
+// Shows a preview of a chosen image file
+function bindPreview(fileId, previewId, imgId){
+  document.getElementById(fileId)?.addEventListener('change', function(){
+    const file = this.files[0];
+    if(!file){ document.getElementById(previewId).style.display = 'none'; return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById(imgId).src = e.target.result;
+      document.getElementById(previewId).style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Uploads an image through the existing /upload/image endpoint, returns the URL (or throws with a readable message)
+async function uploadImage(file){
+  const form = new FormData();
+  form.append('file', file);
+  const r = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+  const d = await safeJson(r);
+  if(!r.ok || !d.url) throw new Error(d.detail || 'Image upload failed');
+  return d.url;
+}
+
+// ---------- Overview ----------
+async function loadOverview(){
+  // Content stats (unchanged)
+  try{
+    const r = await fetch(`${API}/admin/questions/count`, {headers: hdrs()});
+    const d = await r.json();
+    document.getElementById('stats-grid').innerHTML = statBox(d.total, 'Total Questions');
+    const breakdown = document.getElementById('stats-breakdown');
+    const entries = Object.entries(d.by_subject_level || {});
+    if(!entries.length){ breakdown.innerHTML = '<p style="color:var(--muted);font-size:13px;">No questions yet.</p>'; }
+    else breakdown.innerHTML = entries.map(([k,v]) => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span>${esc(k)}</span><span class="tag">${esc(v)}</span>
+      </div>`).join('');
+  }catch(e){}
+
+  // User stats for both apps
+  const get = path => fetch(`${API}${path}`, {headers: hdrs()}).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [hub, campus] = await Promise.all([get('/admin/monitor/overview'), get('/admin/campus/monitor/overview')]);
+
+  // Accurate AI-chat and 7-day numbers come from the activity log
+  let ai = null, active7 = null, note = '';
+  try{
+    const events = await ensureActivity(false);
+    const today = utcDay(0), start7 = utcDay(6);
+    const seen = new Set();
+    ai = 0;
+    for(const ev of events){
+      const day = (ev.created_at || '').slice(0,10);
+      if(day === today && featureOf(ev) === 'ai_chat') ai++;
+      if(day >= start7 && ev.username) seen.add(ev.username);
+    }
+    active7 = seen.size;
+    const oldest = (events[events.length-1]?.created_at || '').slice(0,10);
+    if(ACT.truncated && oldest > start7) note = `Only the latest ${ACT_LIMIT} events are loaded (back to ${oldest}), so the 7-day number may be low.`;
+  }catch(e){}
+
+  document.getElementById('hub-stats').innerHTML = hub
+    ? statBox(hub.total_users, 'Total users') + statBox(hub.active_users_today, 'Active today')
+      + statBox(active7 == null ? '—' : active7, 'Active last 7 days')
+      + statBox(ai == null ? hub.ai_calls_today : ai, 'AI chats today')
+    : statBox('—', 'Could not load');
+  document.getElementById('campus-stats').innerHTML = campus
+    ? statBox(campus.total_users, 'Total students') + statBox(campus.active_users_today, 'Active today')
+      + statBox(campus.premium_users, 'Premium') + statBox(campus.signups_today, 'Signups today')
+      + statBox(campus.mock_tests_today, 'Tests today')
+    : statBox('—', 'Could not load');
+  document.getElementById('overview-note').textContent = note;
+}
+
+// ---------- Add single question ----------
+async function submitAddQuestion(){
+  const payload = {
+    subject: document.getElementById('aq-subject').value.trim(),
+    level: document.getElementById('aq-level').value.trim(),
+    topic: document.getElementById('aq-topic').value.trim() || null,
+    question_text: document.getElementById('aq-question').value.trim(),
+    option_a: document.getElementById('aq-a').value.trim(),
+    option_b: document.getElementById('aq-b').value.trim(),
+    option_c: document.getElementById('aq-c').value.trim(),
+    option_d: document.getElementById('aq-d').value.trim(),
+    correct_answer: document.getElementById('aq-correct').value,
+    explanation: document.getElementById('aq-explanation').value.trim() || null,
+    source: document.getElementById('aq-source').value.trim() || 'manual',
+  };
+  if(!payload.subject || !payload.level || !payload.question_text || !payload.option_a || !payload.option_b || !payload.option_c || !payload.option_d){
+    showMsg('aq-msg', 'Please fill in all required fields', 'error'); return;
+  }
+  try{
+    const r = await fetch(`${API}/admin/add-question`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('aq-msg', 'Question added successfully!', 'success');
+      ['aq-question','aq-a','aq-b','aq-c','aq-d','aq-explanation','aq-topic'].forEach(id => document.getElementById(id).value = '');
+    }else{
+      showMsg('aq-msg', d.detail || 'Could not add question', 'error');
+    }
+  }catch(e){ showMsg('aq-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Bulk add ----------
+async function submitBulkQuestions(){
+  let questions;
+  try{
+    questions = JSON.parse(document.getElementById('bulk-json').value);
+    if(!Array.isArray(questions)) throw new Error();
+  }catch(e){
+    showMsg('bulk-msg', 'Invalid JSON — make sure it is a valid array of question objects', 'error');
+    return;
+  }
+  try{
+    const r = await fetch(`${API}/admin/add-questions-bulk`, {method:'POST', headers: hdrs(), body: JSON.stringify({questions})});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('bulk-msg', d.msg || `${questions.length} questions added!`, 'success');
+      document.getElementById('bulk-json').value = '';
+    }else{
+      showMsg('bulk-msg', d.detail || 'Could not add questions', 'error');
+    }
+  }catch(e){ showMsg('bulk-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Past question ----------
+async function submitPastQuestion(){
+  const payload = {
+    exam_type: document.getElementById('pq-exam').value,
+    year: parseInt(document.getElementById('pq-year').value),
+    subject: document.getElementById('pq-subject').value.trim(),
+    question_text: document.getElementById('pq-question').value.trim(),
+    option_a: document.getElementById('pq-a').value.trim(),
+    option_b: document.getElementById('pq-b').value.trim(),
+    option_c: document.getElementById('pq-c').value.trim(),
+    option_d: document.getElementById('pq-d').value.trim(),
+    correct_answer: document.getElementById('pq-correct').value,
+    explanation: document.getElementById('pq-explanation').value.trim() || null,
+    image_url: null,
+  };
+  if(!payload.year || !payload.subject || !payload.question_text){
+    showMsg('pq-msg', 'Please fill in all required fields', 'error'); return;
+  }
+  try{
+    const file = document.getElementById('pq-file').files[0];
+    if(file){
+      showMsg('pq-msg', 'Uploading image...', 'success');
+      try{ payload.image_url = await uploadImage(file); }
+      catch(err){ showMsg('pq-msg', err.message + ' — question not saved', 'error'); return; }
+    }
+    const r = await fetch(`${API}/admin/add-past-question`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await safeJson(r);
+    if(r.ok){
+      if(payload.image_url && !d.has_image){
+        showMsg('pq-msg', 'Question saved, but the image was NOT stored — the backend needs the past-question image update first.', 'error');
+      }else{
+        showMsg('pq-msg', payload.image_url ? 'Past question added with image!' : 'Past question added!', 'success');
+      }
+      ['pq-question','pq-a','pq-b','pq-c','pq-d','pq-explanation'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pq-file').value = '';
+      document.getElementById('pq-preview').style.display = 'none';
+    }else{
+      showMsg('pq-msg', d.detail || 'Could not add past question', 'error');
+    }
+  }catch(e){ showMsg('pq-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Subjects & Topics ----------
+async function submitAddSubject(){
+  const name = document.getElementById('subj-name').value.trim();
+  const levelText = document.getElementById('subj-level').value.trim();
+  const track = document.getElementById('subj-track').value;
+  const level = [levelText, track].filter(Boolean).join(' ');
+  if(!name || !level){ showMsg('subj-msg', 'Enter a subject name and a level or a WAEC/NECO track', 'error'); return; }
+  try{
+    const r = await fetch(`${API}/admin/add-subject`, {method:'POST', headers: hdrs(), body: JSON.stringify({name, level})});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('subj-msg', 'Subject added!', 'success');
+      document.getElementById('subj-name').value = ''; document.getElementById('subj-level').value = '';
+      document.getElementById('subj-track').value = '';
+      loadSubjectsIntoSelects();
+      loadSubjectList();
+    }else{
+      showMsg('subj-msg', d.detail || 'Could not add subject', 'error');
+    }
+  }catch(e){ showMsg('subj-msg', 'Connection error', 'error'); }
+}
+
+async function loadSubjectsIntoSelects(){
+  try{
+    const r = await fetch(`${API}/subjects`);
+    const d = await r.json();
+    const subjects = Array.isArray(d) ? d : (d.subjects || []);
+    const opts = '<option value="">Select a subject</option>' + subjects.map(s =>
+      `<option value="${s.id}">${s.name} (${s.level})</option>`).join('');
+    const topicSel = document.getElementById('topic-subject-select');
+    const diagramSel = document.getElementById('diagram-subject-select');
+    if(topicSel) topicSel.innerHTML = opts;
+    if(diagramSel) diagramSel.innerHTML = opts;
+  }catch(e){}
+}
+
+// Sends a JSON POST and reports what went wrong in plain words
+async function postJson(path, body){
+  let r;
+  try{ r = await fetch(`${API}${path}`, {method:'POST', headers: hdrs(), body: JSON.stringify(body)}); }
+  catch(e){ return {ok:false, network:true, status:0, data:{}}; }
+  return {ok: r.ok, network:false, status: r.status, data: await safeJson(r)};
+}
+function failText(res, what){
+  if(res.network) return `${what}: the server sent no response. If this only happens with long text, the server probably crashed on it — check the Render logs.`;
+  const d = res.data || {};
+  const detail = typeof d.detail === 'string' ? d.detail : (Array.isArray(d.detail) ? d.detail.map(x => x.msg).join('; ') : '');
+  return `${what} (error ${res.status})${detail ? ': ' + detail : ''}`;
+}
+
+// Joins the lesson text and the "students should be able to" list into the single note the backend stores
+function buildLessonNotes(content, objectives){
+  const parts = [];
+  if(content) parts.push(content);
+  const lines = objectives.split('\n').map(l => l.replace(/^\s*(?:[-•*]|\d+[.)])\s+/, '').trim()).filter(Boolean);
+  if(lines.length) parts.push('By the end of this lesson, students should be able to:\n' + lines.map(l => '- ' + l).join('\n'));
+  return parts.join('\n\n');
+}
+
+let PENDING_TOPIC = null;   // a topic that was created but whose lesson content didn't save yet — retry re-uses it, no duplicate
+
+async function submitAddTopic(){
+  const subject_id = document.getElementById('topic-subject-select').value;
+  const title = document.getElementById('topic-title').value.trim();
+  const content = document.getElementById('topic-content').value.trim();
+  const objectives = document.getElementById('topic-objectives').value;
+  const file = document.getElementById('topic-file').files[0];
+  if(!subject_id || !title){ showMsg('topic-msg', 'Please select a subject and enter a title', 'error'); return; }
+  const notes = buildLessonNotes(content, objectives);
+
+  showMsg('topic-msg', 'Saving...', 'success');
+  let topicId;
+  if(PENDING_TOPIC && PENDING_TOPIC.subject_id === subject_id && PENDING_TOPIC.title === title){
+    topicId = PENDING_TOPIC.id;
+  }else{
+    const res = await postJson('/admin/add-topic', {title, subject_id: parseInt(subject_id)});
+    if(!res.ok){ showMsg('topic-msg', failText(res, 'Could not add topic'), 'error'); return; }
+    topicId = res.data.id;
+    PENDING_TOPIC = {id: topicId, subject_id, title};
+  }
+
+  if(notes || file){
+    let imageUrl = null;
+    if(file){
+      showMsg('topic-msg', 'Uploading diagram...', 'success');
+      try{ imageUrl = await uploadImage(file); }
+      catch(err){ showMsg('topic-msg', `Topic added, but the diagram failed: ${err.message}. Click Add Topic again to retry.`, 'error'); return; }
+    }
+    showMsg('topic-msg', 'Saving lesson content...', 'success');
+    const att = await postJson(`/admin/topic/${topicId}/attach`, {image_url: imageUrl, admin_notes: notes || null});
+    if(!att.ok){
+      showMsg('topic-msg', failText(att, 'Topic added, but the lesson content was not saved') + ' Click Add Topic again to retry.', 'error');
+      return;
+    }
+  }
+
+  PENDING_TOPIC = null;
+  showMsg('topic-msg', (notes || file) ? 'Topic and lesson saved!' : 'Topic added!', 'success');
+  ['topic-title','topic-content','topic-objectives'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('topic-file').value = '';
+  document.getElementById('topic-preview').style.display = 'none';
+  document.getElementById('topic-content-count').textContent = '';
+  loadSubjectList();
+}
+
+document.getElementById('topic-content')?.addEventListener('input', function(){
+  document.getElementById('topic-content-count').textContent = this.value.length ? `${this.value.length.toLocaleString()} characters` : '';
+});
+
+// ---------- Diagrams ----------
+async function loadTopicsForDiagram(){
+  const subjectId = document.getElementById('diagram-subject-select').value;
+  const topicSel = document.getElementById('diagram-topic-select');
+  if(!subjectId){ topicSel.innerHTML = '<option value="">Select a subject first</option>'; return; }
+  try{
+    const r = await fetch(`${API}/subjects/${subjectId}/topics`);
+    const d = await r.json();
+    const topics = Array.isArray(d) ? d : (d.topics || []);
+    topicSel.innerHTML = '<option value="">Select a topic</option>' + topics.map(t =>
+      `<option value="${t.id}">${t.title}</option>`).join('');
+  }catch(e){ topicSel.innerHTML = '<option value="">Could not load topics</option>'; }
+}
+
+bindPreview('diagram-file', 'diagram-preview', 'diagram-preview-img');
+bindPreview('pq-file', 'pq-preview', 'pq-preview-img');
+bindPreview('topic-file', 'topic-preview', 'topic-preview-img');
+
+async function submitDiagram(){
+  const topicId = document.getElementById('diagram-topic-select').value;
+  const file = document.getElementById('diagram-file').files[0];
+  const notes = document.getElementById('diagram-notes').value.trim();
+  if(!topicId){ showMsg('diagram-msg', 'Please select a topic', 'error'); return; }
+  if(!file && !notes){ showMsg('diagram-msg', 'Add an image, a note, or both', 'error'); return; }
+
+  let imageUrl = null;
+  try{
+    if(file){
+      showMsg('diagram-msg', 'Uploading image...', 'success');
+      const form = new FormData();
+      form.append('file', file);
+      const uploadR = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+      const uploadD = await uploadR.json();
+      if(!uploadR.ok || !uploadD.url){ showMsg('diagram-msg', uploadD.detail || 'Image upload failed', 'error'); return; }
+      imageUrl = uploadD.url;
+    }
+    const attachR = await fetch(`${API}/admin/topic/${topicId}/attach`, {
+      method:'POST', headers: hdrs(),
+      body: JSON.stringify({ image_url: imageUrl, admin_notes: notes || null })
+    });
+    const attachD = await attachR.json();
+    if(attachR.ok){
+      showMsg('diagram-msg', 'Diagram attached to topic!', 'success');
+      document.getElementById('diagram-file').value = '';
+      document.getElementById('diagram-notes').value = '';
+      document.getElementById('diagram-preview').style.display = 'none';
+    }else{
+      showMsg('diagram-msg', attachD.detail || 'Could not attach diagram', 'error');
+    }
+  }catch(e){ showMsg('diagram-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Theory ----------
+async function submitTheory(){
+  const file = document.getElementById('theory-file').files[0];
+  let imageUrl = null;
+  try{
+    if(file){
+      showMsg('theory-msg', 'Uploading diagram...', 'success');
+      const form = new FormData();
+      form.append('file', file);
+      const uploadR = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+      const uploadD = await uploadR.json();
+      if(uploadR.ok && uploadD.url) imageUrl = uploadD.url;
+    }
+    const payload = {
+      exam_type: document.getElementById('theory-exam').value,
+      year: parseInt(document.getElementById('theory-year').value),
+      subject: document.getElementById('theory-subject').value.trim(),
+      topic: document.getElementById('theory-topic').value.trim() || null,
+      question_text: document.getElementById('theory-question').value.trim(),
+      model_answer: document.getElementById('theory-answer').value.trim() || null,
+      image_url: imageUrl,
+      marks: parseInt(document.getElementById('theory-marks').value) || 10,
+    };
+    if(!payload.year || !payload.subject || !payload.question_text){
+      showMsg('theory-msg', 'Please fill in year, subject, and question text', 'error'); return;
+    }
+    const r = await fetch(`${API}/admin/add-waec-theory`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('theory-msg', 'Theory question added!', 'success');
+      ['theory-topic','theory-question','theory-answer'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('theory-file').value = '';
+    }else{
+      showMsg('theory-msg', d.detail || 'Could not add theory question', 'error');
+    }
+  }catch(e){ showMsg('theory-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Browse ----------
+async function loadBrowseQuestions(){
+  const subject = document.getElementById('browse-subject').value.trim();
+  const level = document.getElementById('browse-level').value.trim();
+  const params = new URLSearchParams();
+  if(subject) params.set('subject', subject);
+  if(level) params.set('level', level);
+  try{
+    const r = await fetch(`${API}/admin/questions?${params}`, {headers: hdrs()});
+    const d = await r.json();
+    const tbody = document.querySelector('#browse-table tbody');
+    if(!d.questions || !d.questions.length){
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No questions found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.questions.map(q => `
+      <tr>
+        <td>${q.id}</td><td>${esc(q.subject)}</td><td>${esc(q.level)}</td>
+        <td style="max-width:280px;">${esc((q.question_text||'').slice(0,80))}${q.question_text?.length > 80 ? '...' : ''}</td>
+        <td><span class="tag">${q.correct_answer}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})">Delete</button></td>
+      </tr>`).join('');
+  }catch(e){}
+}
+
+async function deleteQuestion(id){
+  if(!confirm('Delete this question permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/question/${id}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){ loadBrowseQuestions(); }
+  }catch(e){}
+}
+
+// ---------- Subject list (WAEC/NECO lessons live here too) ----------
+let SUBJECTS_CACHE = [];
+
+async function loadSubjectList(){
+  try{
+    const r = await fetch(`${API}/subjects`);
+    const d = await r.json();
+    SUBJECTS_CACHE = Array.isArray(d) ? d : (d.subjects || []);
+    renderSubjectList();
+  }catch(e){
+    document.getElementById('subject-list').innerHTML = '<p style="color:var(--muted);font-size:13px;">Could not load subjects.</p>';
+  }
+}
+
+function renderSubjectList(){
+  const filter = document.getElementById('subj-filter').value;
+  const list = SUBJECTS_CACHE.filter(s => !filter || String(s.level || '').toUpperCase().includes(filter));
+  const box = document.getElementById('subject-list');
+  if(!list.length){ box.innerHTML = '<p style="color:var(--muted);font-size:13px;">No subjects here yet.</p>'; return; }
+  box.innerHTML = list.map(s => `
+    <div class="subj-row">
+      <div class="subj-head">
+        <span>${esc(s.name)} <span class="tag">${esc(s.level)}</span></span>
+        <span class="subj-actions">
+          <button class="btn btn-ghost btn-sm" onclick="toggleTopics(${s.id})">Topics</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id})">Delete</button>
+        </span>
+      </div>
+      <div class="topic-list hidden" id="subj-topics-${s.id}"></div>
+    </div>`).join('');
+}
+
+async function toggleTopics(subjectId){
+  const box = document.getElementById(`subj-topics-${subjectId}`);
+  if(!box.classList.contains('hidden')){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = '<span style="color:var(--muted);font-size:13px;">Loading...</span>';
+  try{
+    const r = await fetch(`${API}/subjects/${subjectId}/topics`);
+    const d = await r.json();
+    const topics = Array.isArray(d) ? d : (d.topics || []);
+    box.innerHTML = topics.length ? topics.map(t => `
+      <div class="topic-item">
+        <span>${esc(t.title)} ${t.has_image ? '<span class="tag">image</span>' : ''}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteTopic(${t.id}, ${subjectId})">Delete</button>
+      </div>`).join('') : '<span style="color:var(--muted);font-size:13px;">No topics yet — add one above.</span>';
+  }catch(e){ box.innerHTML = '<span style="color:var(--danger);font-size:13px;">Could not load topics.</span>'; }
+}
+
+async function deleteTopic(topicId, subjectId){
+  if(!confirm('Delete this topic permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/topic/${topicId}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){
+      document.getElementById(`subj-topics-${subjectId}`).classList.add('hidden');
+      toggleTopics(subjectId);
+    }else{
+      const d = await safeJson(r); showMsg('subjlist-msg', d.detail || 'Could not delete topic', 'error');
+    }
+  }catch(e){ showMsg('subjlist-msg', 'Connection error', 'error'); }
+}
+
+async function deleteSubject(subjectId){
+  if(!confirm('Delete this subject and ALL its topics permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/subject/${subjectId}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){ loadSubjectList(); loadSubjectsIntoSelects(); }
+    else{ const d = await safeJson(r); showMsg('subjlist-msg', d.detail || 'Could not delete subject', 'error'); }
+  }catch(e){ showMsg('subjlist-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Activity log helpers ----------
+const ACT_LIMIT = 5000;
+const ACT = {data: null, at: 0, truncated: false};
+
+// Features the backend only logs after the backend update — until then they show "not tracked yet"
+const NEEDS_BACKEND = new Set(['past_questions','waec_theory_explain','waec_theory_browse','gpt_chat']);
+
+const FEATURE_LABELS = {
+  ai_chat:'AI Tutor messages', ai_vision:'AI image questions', ai_other:'AI chat history / clear',
+  theory_view:'Theory lessons opened', past_questions:'Past questions (WAEC/NECO/JAMB)',
+  waec_theory_explain:'WAEC/NECO theory explanations', waec_theory_browse:'WAEC/NECO theory browsing',
+  gpt_chat:'OX-BridgeGPT chats', quiz_submit:'Quizzes submitted', game_played:'Games played', web_search:'Web searches',
+  login:'Hub logins', signup:'Hub signups',
+  campus_login:'Campus logins', campus_register:'Campus signups', campus_gst_submit:'Campus GST tests',
+  campus_course_submit:'Campus course tests', campus_feedback:'Campus feedback', cgpa_saved:'CGPA saved',
+  payment_initiated:'Payments started', payment_verified:'Payments verified', image_uploaded:'Images uploaded'
+};
+function labelFor(f){ return FEATURE_LABELS[f] || f; }
+
+// The backend logs every /ai/chat* path as "ai_chat" (including history and clear), so split them by path
+function featureOf(ev){
+  const a = ev.action, p = ev.path || '';
+  if(a === 'ai_chat'){
+    if(p === '/ai/chat') return 'ai_chat';
+    if(p === '/ai/chat/vision') return 'ai_vision';
+    return 'ai_other';
+  }
+  if(a === 'waec_theory') return p.startsWith('/waec-theory/explain') ? 'waec_theory_explain' : 'waec_theory_browse';
+  return a || 'unknown';
+}
+
+function normPath(p){
+  if(p.startsWith('/search/web/')) return '/search/web/{query}';
+  if(p.startsWith('/ai/chat/history/')) return '/ai/chat/history/{username}';
+  if(p.startsWith('/past-questions/')) return '/past-questions/{exam}/{subject}';
+  return p.replace(/\/\d+/g, '/{id}');
+}
+
+function utcDay(daysAgo){ return new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10); }
+
+async function ensureActivity(force){
+  if(!force && ACT.data && Date.now() - ACT.at < 60000) return ACT.data;
+  const r = await fetch(`${API}/admin/monitor/activity?limit=${ACT_LIMIT}`, {headers: hdrs()});
+  if(!r.ok) throw new Error('Could not load activity');
+  const d = await r.json();
+  ACT.data = Array.isArray(d) ? d.filter(e => e.created_at) : [];
+  ACT.at = Date.now();
+  ACT.truncated = Array.isArray(d) && d.length >= ACT_LIMIT;
+  return ACT.data;
+}
+
+function trackedFeatures(){
+  const set = new Set();
+  (ACT.data || []).forEach(ev => set.add(featureOf(ev)));
+  return set;
+}
+
+function summarize(events){
+  const byFeature = {}, byPath = {}, byDay = {}, byUser = {};
+  for(const ev of events){
+    const f = featureOf(ev);
+    const day = ev.created_at.slice(0,10);
+    const u = ev.username || null;
+    const np = normPath(ev.path || '');
+    byPath[np] = (byPath[np] || 0) + 1;
+    if(!byDay[day]) byDay[day] = {users: new Set(), total: 0, feats: {}};
+    if(u) byDay[day].users.add(u);
+    if(f === 'ai_other') continue;               // history/clear calls are not real usage
+    if(!byFeature[f]) byFeature[f] = {count: 0, users: new Set()};
+    byFeature[f].count++;
+    if(u) byFeature[f].users.add(u);
+    byDay[day].total++;
+    byDay[day].feats[f] = (byDay[day].feats[f] || 0) + 1;
+    if(u){
+      if(!byUser[u]) byUser[u] = {total: 0, feats: {}, last: ''};
+      byUser[u].total++;
+      byUser[u].feats[f] = (byUser[u].feats[f] || 0) + 1;
+      if(ev.created_at > byUser[u].last) byUser[u].last = ev.created_at;
+    }
+  }
+  return {byFeature, byPath, byDay, byUser};
+}
+
+function barList(rows, unitLabel){
+  if(!rows.length) return '<p style="color:var(--muted);font-size:13px;">Nothing recorded in this period.</p>';
+  const max = Math.max(...rows.map(r => r.count)) || 1;
+  return rows.map(r => `
+    <div class="bar-row">
+      <div class="bar-label">${esc(r.label)}${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3, Math.round(r.count / max * 100))}%"></div></div>
+      <div class="bar-val">${r.count}</div>
+    </div>`).join('');
+}
+
+// ---------- Usage & Activity tab ----------
+async function loadAnalytics(force){
+  try{
+    await ensureActivity(force);
+    document.getElementById('an-msg').className = 'msg';
+    renderAnalytics();
+  }catch(e){ showMsg('an-msg', 'Could not load activity. Check your connection and admin key.', 'error'); }
+}
+
+function renderAnalytics(){
+  if(!ACT.data) return;
+  const range = parseInt(document.getElementById('an-range').value);
+  const start = range ? utcDay(range - 1) : '';
+  const events = ACT.data.filter(ev => ev.created_at.slice(0,10) >= start);
+  const {byFeature, byPath, byDay, byUser} = summarize(events);
+  const tracked = trackedFeatures();
+  const waecTracked = tracked.has('past_questions') || tracked.has('waec_theory_explain');
+
+  const allUsers = new Set(); Object.values(byDay).forEach(d => d.users.forEach(u => allUsers.add(u)));
+  const count = f => byFeature[f]?.count || 0;
+  const totalActions = Object.values(byFeature).reduce((n, x) => n + x.count, 0);
+  document.getElementById('an-stats').innerHTML =
+    statBox(allUsers.size, 'Active students') + statBox(totalActions, 'Total actions') +
+    statBox(count('ai_chat'), 'AI messages') + statBox(count('theory_view'), 'Theory lessons') +
+    statBox(waecTracked ? count('past_questions') + count('waec_theory_explain') : '—', waecTracked ? 'WAEC/NECO activity' : 'WAEC/NECO (not tracked yet)');
+
+  const oldest = ACT.data.length ? ACT.data[ACT.data.length - 1].created_at.slice(0,10) : '';
+  document.getElementById('an-note').textContent = ACT.truncated
+    ? `Only the latest ${ACT_LIMIT} events are loaded (back to ${oldest}). Older activity is not included.`
+    : `${ACT.data.length} events loaded.`;
+
+  // Features
+  const featRows = Object.entries(byFeature).map(([f, x]) => ({label: labelFor(f), sub: `${x.users.size} student${x.users.size === 1 ? '' : 's'}`, count: x.count}))
+    .sort((a, b) => b.count - a.count);
+  const missing = [...NEEDS_BACKEND].filter(f => !tracked.has(f) && f !== 'waec_theory_browse')
+    .map(f => labelFor(f)).join(', ');
+  document.getElementById('an-features').innerHTML = barList(featRows) +
+    (missing ? `<div class="hint">Not tracked yet (needs the backend update): ${esc(missing)}.</div>` : '');
+
+  // Endpoints
+  const pathRows = Object.entries(byPath).map(([p, n]) => ({label: p, count: n})).sort((a, b) => b.count - a.count).slice(0, 12);
+  document.getElementById('an-paths').innerHTML = barList(pathRows);
+
+  // Daily table
+  const days = Object.keys(byDay).sort().reverse();
+  document.getElementById('an-daily').innerHTML = days.length ? `
+    <table><thead><tr><th>Date</th><th>Active</th><th>AI</th><th>Theory</th><th>Past Q / WAEC</th><th>Total</th></tr></thead><tbody>` +
+    days.map(d => {
+      const x = byDay[d], fe = x.feats;
+      const pq = (fe.past_questions || 0) + (fe.waec_theory_explain || 0);
+      return `<tr><td>${esc(d)}</td><td><span class="tag">${x.users.size}</span></td><td>${fe.ai_chat || 0}</td><td>${fe.theory_view || 0}</td><td>${waecTracked ? pq : '—'}</td><td>${x.total}</td></tr>`;
+    }).join('') + '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No activity in this period.</p>';
+
+  // Top users
+  const top = Object.entries(byUser).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+  document.getElementById('an-top-users').innerHTML = top.length ? `
+    <table><thead><tr><th>Student</th><th>AI</th><th>Theory</th><th>Past Q / WAEC</th><th>Total</th><th>Last active</th><th></th></tr></thead><tbody>` +
+    top.map(([u, x]) => {
+      const pq = (x.feats.past_questions || 0) + (x.feats.waec_theory_explain || 0);
+      return `<tr><td>${esc(u)}</td><td>${x.feats.ai_chat || 0}</td><td>${x.feats.theory_view || 0}</td><td>${waecTracked ? pq : '—'}</td><td>${x.total}</td><td>${esc(new Date(x.last).toLocaleString())}</td>
+        <td><button class="btn btn-ghost btn-sm" data-user="${esc(u)}" onclick="openUser(this.dataset.user)">View</button></td></tr>`;
+    }).join('') + '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No named students in this period (some actions are logged without a username).</p>';
+
+  // Latest events
+  document.getElementById('an-recent').innerHTML = events.length ? `
+    <table><thead><tr><th>Time</th><th>Student</th><th>What</th><th>Endpoint</th></tr></thead><tbody>` +
+    events.slice(0, 25).map(ev => `<tr><td>${esc(new Date(ev.created_at).toLocaleString())}</td><td>${esc(ev.username || '—')}</td><td>${esc(labelFor(featureOf(ev)))}</td><td style="color:var(--muted);">${esc(ev.path || '')}</td></tr>`).join('') +
+    '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No events in this period.</p>';
+}
+
+function openUser(username){
+  switchTab('users');
+  document.getElementById('usr-lookup').value = username;
+  document.getElementById('usr-app').value = 'auto';
+  lookupUser();
+}
+
+// ---------- Users tab ----------
+async function lookupUser(){
+  const username = document.getElementById('usr-lookup').value.trim();
+  const app = document.getElementById('usr-app').value;
+  const out = document.getElementById('usr-result');
+  if(!username){ showMsg('usr-msg', 'Enter a username', 'error'); return; }
+  document.getElementById('usr-msg').className = 'msg';
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+
+  const enc = encodeURIComponent(username);
+  const getUsage = async which => {
+    const path = which === 'hub' ? `/admin/monitor/usage/${enc}` : `/admin/campus/monitor/usage/${enc}`;
+    const r = await fetch(`${API}${path}`, {headers: hdrs()});
+    return r.ok ? await r.json() : null;
+  };
+  try{
+    let usage = null, which = app;
+    if(app === 'auto'){
+      usage = await getUsage('hub'); which = 'hub';
+      if(!usage){ usage = await getUsage('campus'); which = 'campus'; }
+    }else usage = await getUsage(app);
+    if(!usage){ out.innerHTML = ''; showMsg('usr-msg', 'No student with that username in the selected app', 'error'); return; }
+
+    const ar = await fetch(`${API}/admin/monitor/activity?username=${enc}&limit=2000`, {headers: hdrs()});
+    const events = ar.ok ? (await ar.json()).filter(e => e.created_at) : [];
+    try{ await ensureActivity(false); }catch(e){}
+    const tracked = trackedFeatures();
+
+    const feats = {}, days = new Set();
+    let last = '', first = '';
+    events.forEach(ev => {
+      const f = featureOf(ev);
+      if(f !== 'ai_other') feats[f] = (feats[f] || 0) + 1;
+      days.add(ev.created_at.slice(0,10));
+      if(!last || ev.created_at > last) last = ev.created_at;
+      if(!first || ev.created_at < first) first = ev.created_at;
+    });
+    const val = f => (NEEDS_BACKEND.has(f) && !tracked.has(f)) ? '<span class="tag muted">not tracked yet</span>' : `<span class="tag">${feats[f] || 0}</span>`;
+    const row = (label, v) => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${esc(label)}</span>${v}</div>`;
+
+    let stats = statBox(days.size, 'Days active') + statBox(events.length, 'Logged actions');
+    if(which === 'hub'){
+      stats += statBox(usage.ai_messages ?? 0, 'AI messages (all time)') + statBox(usage.quiz_count ?? 0, 'Quizzes') + statBox(usage.score ?? 0, 'Score') + statBox(usage.coins ?? 0, 'Coins');
+    }else{
+      stats += statBox(usage.gst_tests_taken ?? 0, 'GST tests') + statBox(usage.course_tests_taken ?? 0, 'Course tests') + statBox(usage.is_premium ? 'Yes' : 'No', 'Premium');
+    }
+    const who = which === 'campus' ? `${esc(usage.full_name || username)} · ${esc(usage.department || '')} ${esc(usage.level || '')}` : esc(username);
+    out.innerHTML = `
+      <div style="font-weight:700;margin-bottom:10px;">${who} <span class="tag">${which === 'hub' ? 'Learning Hub' : 'AKSU Campus'}</span></div>
+      <div class="stats-grid">${stats}</div>
+      <div>
+        ${row('AI Tutor messages (logged)', val('ai_chat'))}
+        ${row('AI image questions', val('ai_vision'))}
+        ${row('Theory lessons opened', val('theory_view'))}
+        ${row('Past questions (WAEC/NECO/JAMB)', val('past_questions'))}
+        ${row('WAEC/NECO theory explanations', val('waec_theory_explain'))}
+        ${row('Quizzes submitted', val('quiz_submit'))}
+        ${row('Games played', val('game_played'))}
+        ${row('First seen', `<span class="tag">${first ? esc(new Date(first).toLocaleDateString()) : '—'}</span>`)}
+        ${row('Last active', `<span class="tag">${last ? esc(new Date(last).toLocaleString()) : '—'}</span>`)}
+      </div>
+      <div class="hint">Counts come from the activity log (latest 2000 actions for this student). Other actions: ${
+        Object.entries(feats).filter(([f]) => !['ai_chat','ai_vision','theory_view','past_questions','waec_theory_explain','quiz_submit','game_played'].includes(f))
+          .map(([f, n]) => `${esc(labelFor(f))} ${n}`).join(', ') || 'none'}.</div>
+      <div style="margin-top:12px;"><button class="btn btn-ghost btn-sm" data-user="${esc(username)}" data-app="${which}" onclick="prepMessage(this.dataset.user, this.dataset.app)">Message this student</button></div>`;
+  }catch(e){ out.innerHTML = ''; showMsg('usr-msg', 'Connection error', 'error'); }
+}
+
+const ROSTER = {rows: [], app: 'campus', loaded: false};
+
+async function loadRoster(){
+  const app = document.getElementById('roster-app').value;
+  const table = document.getElementById('roster-table');
+  document.getElementById('roster-msg').className = 'msg';
+  table.innerHTML = '<tbody><tr><td style="color:var(--muted);">Loading...</td></tr></tbody>';
+  try{
+    const r = await fetch(`${API}${app === 'hub' ? '/admin/hub/users' : '/admin/campus/users'}?limit=500`, {headers: hdrs()});
+    if(r.status === 404 || r.status === 405){
+      ROSTER.rows = []; ROSTER.app = app; ROSTER.loaded = true;
+      table.innerHTML = '';
+      showMsg('roster-msg', "The backend doesn't have a Learning Hub user list yet. Add backend update #3, or look students up by username above.", 'error');
+      return;
+    }
+    const d = await r.json();
+    ROSTER.rows = Array.isArray(d) ? d : []; ROSTER.app = app; ROSTER.loaded = true;
+    renderRoster();
+  }catch(e){ table.innerHTML = ''; showMsg('roster-msg', 'Connection error', 'error'); }
+}
+
+function renderRoster(){
+  const q = document.getElementById('roster-search').value.trim().toLowerCase();
+  const rows = ROSTER.rows.filter(u => !q || [u.username, u.full_name, u.department, u.email].some(v => String(v || '').toLowerCase().includes(q)));
+  const table = document.getElementById('roster-table');
+  if(!rows.length){ table.innerHTML = '<tbody><tr><td style="color:var(--muted);">No students found</td></tr></tbody>'; return; }
+  const campus = ROSTER.app === 'campus';
+  const head = campus ? '<th>Username</th><th>Name</th><th>Department</th><th>Level</th><th>Premium</th><th></th>'
+                      : '<th>Username</th><th>Score</th><th>Streak</th><th>Last studied</th><th>Premium</th><th></th>';
+  table.innerHTML = `<thead><tr>${head}</tr></thead><tbody>` + rows.map(u => {
+    const cells = campus
+      ? `<td>${esc(u.username)}</td><td>${esc(u.full_name)}</td><td>${esc(u.department)}</td><td>${esc(u.level)}</td>`
+      : `<td>${esc(u.username)}</td><td>${esc(u.score)}</td><td>${esc(u.streak)}</td><td>${esc(u.last_study_date || '—')}</td>`;
+    return `<tr>${cells}<td>${u.is_premium ? '<span class="tag">Premium</span>' : '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" data-user="${esc(u.username)}" data-app="${ROSTER.app}" onclick="openRosterUser(this.dataset.user, this.dataset.app)">Usage</button>
+        <button class="btn btn-ghost btn-sm" data-user="${esc(u.username)}" data-app="${ROSTER.app}" onclick="prepMessage(this.dataset.user, this.dataset.app)">Message</button>
+      </td></tr>`;
+  }).join('') + '</tbody>';
+}
+
+function openRosterUser(username, app){
+  document.getElementById('usr-lookup').value = username;
+  document.getElementById('usr-app').value = app;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  lookupUser();
+}
+
+// ---------- Message students ----------
+function prepMessage(username, app){
+  switchTab('messages');
+  document.getElementById('msgs-app').value = app;
+  document.getElementById('msgs-target').value = 'one';
+  document.getElementById('msgs-user-wrap').classList.remove('hidden');
+  document.getElementById('msgs-user').value = username;
+  document.getElementById('msgs-text').focus();
+}
+
+async function sendMessage(){
+  const app = document.getElementById('msgs-app').value;
+  const toOne = document.getElementById('msgs-target').value === 'one';
+  const username = document.getElementById('msgs-user').value.trim();
+  const message = document.getElementById('msgs-text').value.trim();
+  if(!message){ showMsg('msgs-msg', 'Write a message first', 'error'); return; }
+  if(toOne && !username){ showMsg('msgs-msg', 'Enter the student\'s username', 'error'); return; }
+  if(!toOne && !confirm(`Send this message to EVERY ${app === 'campus' ? 'AKSU Campus' : 'Learning Hub'} student?`)) return;
+  try{
+    const r = await fetch(`${API}${app === 'campus' ? '/admin/campus/notify' : '/admin/hub/notify'}`, {
+      method:'POST', headers: hdrs(), body: JSON.stringify({username: toOne ? username : null, message})
+    });
+    const d = await safeJson(r);
+    if(r.ok){
+      showMsg('msgs-msg', toOne ? `Message sent to ${username}!` : (d.sent_to ? `Message sent to ${d.sent_to} students!` : 'Broadcast sent!'), 'success');
+      document.getElementById('msgs-text').value = '';
+    }else if(r.status === 404 && app === 'hub' && !d.detail?.toLowerCase().includes('user')){
+      showMsg('msgs-msg', "The backend can't message Learning Hub students yet. Add backend update #2 and redeploy.", 'error');
+    }else if(r.status === 405){
+      showMsg('msgs-msg', "The backend can't message Learning Hub students yet. Add backend update #2 and redeploy.", 'error');
+    }else{
+      showMsg('msgs-msg', d.detail || 'Could not send message', 'error');
+    }
+  }catch(e){ showMsg('msgs-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Auto-login if key already saved ----------
+window.addEventListener('load', () => {
+  if(ADMIN_KEY){
+    document.getElementById('admin-key-input').value = ADMIN_KEY;
+    doLogin();
+  }
+});
+</script>
+</body>
+</html>
