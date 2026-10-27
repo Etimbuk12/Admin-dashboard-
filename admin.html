@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c2a1b">
+<meta name="robots" content="noindex,nofollow">
+<title>OX-Bridge Admin Console</title>
+<style>
+/* =========================================================
+   OX-Bridge Admin Console - design system
+   (colour variable names are used by the page scripts: keep them)
+   ========================================================= */
+:root{
+  --bg:#f3f6f4; --surface:#ffffff; --surface-2:#f8faf9;
+  --border:#e2e8e4; --border-strong:#cdd7d1;
+  --text:#14231a; --muted:#64756b;
+  --green:#0b7a3f; --green-dark:#06502a; --green-soft:#e6f4ec;
+  --gold:#a87a12; --gold-soft:#fbf2d9;
+  --danger:#d92d20; --danger-soft:#fdecea;
+  --blue:#2563eb; --purple:#7c3aed;
+  --radius:14px; --radius-sm:10px;
+  --shadow-sm:0 1px 2px rgba(16,36,24,.06);
+  --shadow:0 6px 24px rgba(16,36,24,.08);
+  --side:#0c2a1b; --side-w:272px; --top-h:64px;
+  --font:'Inter','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font);}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+body.nav-open{overflow:hidden;}
+.hidden{display:none !important;}
+::selection{background:var(--green-soft);}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:#c5d0c9;border-radius:10px;border:2px solid transparent;background-clip:content-box;}
+::-webkit-scrollbar-thumb:hover{background:#a9b8ae;background-clip:content-box;border:2px solid transparent;}
+
+/* ---------- Login ---------- */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(900px 500px at 12% 8%,rgba(11,122,63,.16),transparent 60%),radial-gradient(800px 500px at 92% 95%,rgba(168,122,18,.14),transparent 60%),var(--bg);}
+.login-wrap{display:grid;grid-template-columns:1.05fr 1fr;width:100%;max-width:880px;background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(12,42,27,.18);border:1px solid var(--border);}
+.login-brand{background:linear-gradient(160deg,#0d3a24 0%,#082015 100%);color:#fff;padding:40px 36px;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden;}
+.login-brand::after{content:"";position:absolute;right:-70px;bottom:-70px;width:240px;height:240px;border-radius:50%;background:rgba(201,162,39,.16);}
+.brand-mark{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#d4af37,#a87a12);color:#102a1b;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;box-shadow:0 6px 16px rgba(0,0,0,.25);flex:0 0 auto;}
+.login-brand h1{font-size:1.65rem;line-height:1.2;font-weight:800;letter-spacing:-.02em;}
+.login-brand p{color:rgba(255,255,255,.72);font-size:13.5px;}
+.login-brand ul{list-style:none;display:grid;gap:10px;margin-top:6px;position:relative;z-index:1;}
+.login-brand li{display:flex;gap:10px;align-items:center;font-size:13px;color:rgba(255,255,255,.85);}
+.login-brand li::before{content:"";width:7px;height:7px;border-radius:50%;background:#d4af37;flex:0 0 auto;}
+.login-card{padding:40px 36px;display:flex;flex-direction:column;justify-content:center;text-align:left;}
+.login-card h2{font-size:1.35rem;font-weight:800;letter-spacing:-.01em;margin-bottom:4px;}
+.login-card p{font-size:13.5px;color:var(--muted);margin-bottom:22px;}
+.login-foot{margin-top:18px;font-size:12px;color:var(--muted);text-align:center;}
+
+/* ---------- App shell ---------- */
+#app-screen{display:none;min-height:100vh;}
+.sidebar{width:var(--side-w);background:linear-gradient(185deg,#0e3322 0%,#0a2418 55%,#071a11 100%);color:#fff;position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:60;transition:transform .25s ease;}
+.side-brand{display:flex;align-items:center;gap:12px;padding:20px 20px 18px;border-bottom:1px solid rgba(255,255,255,.08);}
+.side-brand .brand-mark{width:40px;height:40px;font-size:15px;border-radius:12px;}
+.side-brand b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em;}
+.side-brand span{display:block;font-size:11.5px;color:rgba(255,255,255,.55);margin-top:1px;}
+.side-scroll{flex:1;overflow-y:auto;padding:10px 0 12px;}
+.side-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);background-clip:content-box;}
+.nav-group{padding:4px 0 2px;}
+.nav-group-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.38);padding:10px 24px 5px;}
+.nav-item{display:flex;align-items:center;gap:12px;margin:1px 12px;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.72);position:relative;transition:background .15s,color .15s;user-select:none;}
+.nav-item .ni{width:18px;height:18px;flex:0 0 18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.9;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.13);color:#fff;}
+.nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:#d4af37;}
+.nav-item.active .ni{color:#e9c75a;opacity:1;}
+.side-foot{padding:14px 16px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#d4af37,#a87a12);color:#102a1b;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+.side-foot .who{flex:1;min-width:0;line-height:1.25;}
+.side-foot .who b{display:block;font-size:13px;}
+.side-foot .who span{font-size:11.5px;color:rgba(255,255,255,.5);}
+.logout-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.85);padding:7px 11px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s;}
+.logout-btn:hover{background:rgba(217,45,32,.35);border-color:rgba(217,45,32,.5);color:#fff;}
+.logout-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.nav-overlay{position:fixed;inset:0;background:rgba(6,20,12,.55);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:55;}
+
+.main{margin-left:var(--side-w);min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:40;height:var(--top-h);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 32px;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--border);}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:12px;min-width:0;}
+.icon-btn{display:none;width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;align-items:center;justify-content:center;color:var(--text);}
+.icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);min-width:0;white-space:nowrap;}
+.crumbs svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;}
+.crumbs b{color:var(--text);font-weight:700;overflow:hidden;text-overflow:ellipsis;}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--green-dark);background:var(--green-soft);padding:5px 11px;border-radius:20px;}
+.live-dot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(11,122,63,.2);}
+.content{padding:30px 32px 64px;max-width:1280px;margin:0 auto;}
+
+/* ---------- Page header ---------- */
+.tab-panel{animation:panelIn .25s ease;}
+@keyframes panelIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.tab-panel > h2{font-size:1.65rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;margin-bottom:6px;color:var(--text);}
+.tab-panel > .sub{font-size:14px;color:var(--muted);margin-bottom:24px;max-width:760px;line-height:1.55;}
+
+/* ---------- Cards & sections ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+.card h3{font-size:15.5px;font-weight:700;letter-spacing:-.01em;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.card h3::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--green);flex:0 0 auto;}
+.section-title{display:flex;align-items:center;gap:12px;font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:26px 0 12px;}
+.section-title::after{content:"";flex:1;height:1px;background:var(--border);}
+.tab-panel > .section-title:first-of-type{margin-top:4px;}
+
+/* ---------- Stats ---------- */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:14px;margin-bottom:22px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;text-align:left;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s;}
+#stats-grid{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));}
+.stat-box:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.stat-box::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:var(--green);}
+.stat-box:nth-child(4n+2)::before{background:var(--blue);}
+.stat-box:nth-child(4n+3)::before{background:#d4a017;}
+.stat-box:nth-child(4n+4)::before{background:var(--purple);}
+.stat-box .num{font-size:1.85rem;font-weight:800;letter-spacing:-.02em;color:var(--text);line-height:1.15;font-variant-numeric:tabular-nums;}
+.stat-box .label{font-size:12px;font-weight:600;color:var(--muted);margin-top:5px;}
+
+/* ---------- Forms ---------- */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:0;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:12.5px;font-weight:600;color:#3e5045;margin-bottom:6px;}
+input,select,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;background:#fff;color:var(--text);outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;}
+input::placeholder,textarea::placeholder{color:#9aaaa0;}
+input:hover,select:hover,textarea:hover{border-color:#b3c1b8;}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3.5px rgba(11,122,63,.14);}
+textarea{resize:vertical;min-height:84px;line-height:1.5;}
+select{appearance:none;-webkit-appearance:none;padding-right:36px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364756b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+input[type=checkbox],input[type=radio]{width:17px;height:17px;padding:0;accent-color:var(--green);cursor:pointer;flex:0 0 auto;box-shadow:none;}
+input[type=color]{padding:3px;height:42px;cursor:pointer;}
+input[type=file]{padding:8px;background:var(--surface-2);cursor:pointer;font-size:13px;}
+input[type=file]::file-selector-button{margin-right:12px;border:none;background:var(--green);color:#fff;padding:7px 13px;border-radius:8px;font-weight:600;font-size:12.5px;cursor:pointer;}
+input[type=file]::file-selector-button:hover{background:var(--green-dark);}
+label:has(> input[type=checkbox]){font-size:13.5px;color:var(--text);font-weight:500;cursor:pointer;}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:var(--radius-sm);border:1.5px solid transparent;font-weight:700;font-size:13.5px;cursor:pointer;transition:background .15s,box-shadow .15s,transform .05s,opacity .15s;font-family:inherit;line-height:1.2;}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 2px 8px rgba(11,122,63,.28);}
+.btn-primary:hover{background:var(--green-dark);}
+.btn-ghost{background:#fff;color:var(--text);border-color:var(--border-strong);}
+.btn-ghost:hover{background:var(--surface-2);border-color:#aebcb3;}
+.btn-danger{background:var(--danger);color:#fff;box-shadow:0 2px 8px rgba(217,45,32,.25);}
+.btn-danger:hover{background:#b42318;}
+.btn-sm{padding:7px 13px;font-size:12.5px;border-radius:9px;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+.btn + .btn{margin-left:6px;}
+
+/* ---------- Messages ---------- */
+.msg{padding:12px 15px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:500;margin-bottom:16px;display:none;border:1px solid transparent;border-left-width:4px;}
+.msg.success{display:block;background:#ecfaf1;color:#0b5a30;border-color:#bfe8cf;border-left-color:var(--green);}
+.msg.error{display:block;background:var(--danger-soft);color:#a3231a;border-color:#f6c9c4;border-left-color:var(--danger);}
+
+/* ---------- Tables ---------- */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);vertical-align:middle;}
+th{background:var(--surface-2);color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;border-top:1px solid var(--border);}
+th:first-child{border-left:1px solid var(--border);border-top-left-radius:10px;}
+th:last-child{border-right:1px solid var(--border);border-top-right-radius:10px;}
+td:first-child{border-left:1px solid var(--border);}
+td:last-child{border-right:1px solid var(--border);}
+tbody tr:last-child td:first-child{border-bottom-left-radius:10px;}
+tbody tr:last-child td:last-child{border-bottom-right-radius:10px;}
+tbody tr{transition:background .12s;}
+tbody tr:hover td{background:#f6faf7;}
+td .btn + .btn{margin-left:4px;}
+
+/* ---------- Tags / badges ---------- */
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;background:var(--green-soft);font-size:11.5px;font-weight:700;color:var(--green-dark);white-space:nowrap;}
+.tag.muted{background:#edf1ee;color:var(--muted);}
+.tag.warn{background:var(--gold-soft);color:#8a6410;}
+
+/* ---------- Usage bars & lists ---------- */
+.bar-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+.bar-row:last-child{border-bottom:none;}
+.bar-label{flex:0 0 220px;font-weight:600;}
+.bar-label small{display:block;color:var(--muted);font-size:11.5px;font-weight:500;}
+.bar-track{flex:1;height:10px;background:#edf2ee;border-radius:8px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--green),#3aa766);border-radius:8px;}
+.bar-val{flex:0 0 auto;min-width:52px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;}
+.subj-row{border-bottom:1px solid var(--border);padding:13px 0;}
+.subj-row:last-child{border-bottom:none;}
+.subj-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;}
+.subj-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.topic-list{margin:12px 0 0 10px;padding-left:16px;border-left:2px solid var(--border);}
+.topic-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:13px;}
+
+/* ---------- Helpers ---------- */
+.hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.55;}
+.hint code,code{background:#eef3ef;padding:1px 6px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;color:var(--green-dark);}
+img{max-width:100%;}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1100px){
+  .content{padding:26px 22px 56px;}
+  .topbar{padding:0 22px;}
+}
+@media(max-width:960px){
+  .sidebar{transform:translateX(-102%);box-shadow:none;}
+  body.nav-open .sidebar{transform:none;box-shadow:12px 0 40px rgba(0,0,0,.35);}
+  body.nav-open .nav-overlay{opacity:1;pointer-events:auto;}
+  .main{margin-left:0;}
+  .icon-btn{display:inline-flex;}
+  .live-dot{display:none;}
+}
+@media(max-width:720px){
+  .login-wrap{grid-template-columns:1fr;max-width:440px;}
+  .login-brand{padding:26px 26px 22px;}
+  .login-brand ul{display:none;}
+  .login-card{padding:28px 26px;}
+  .content{padding:20px 14px 48px;}
+  .topbar{padding:0 14px;}
+  .form-row{grid-template-columns:1fr;gap:0;}
+  .card{padding:18px 16px;border-radius:12px;}
+  .tab-panel > h2{font-size:1.4rem;}
+  .bar-label{flex-basis:120px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-box{padding:14px;}
+  .stat-box .num{font-size:1.5rem;}
+  #topbar-refresh span{display:none;}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;scroll-behavior:auto !important;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div class="brand-mark">OX</div>
+      <h1>OX-Bridge<br>Admin Console</h1>
+      <p>Everything you need to run the Learning Hub and AKSU Campus in one place.</p>
+      <ul>
+        <li>Monitor daily student activity</li>
+        <li>Publish blog posts and announcements</li>
+        <li>Manage questions, lessons and games</li>
+      </ul>
+    </div>
+    <div class="login-card">
+      <h2>Welcome back</h2>
+      <p>Enter your admin key to continue.</p>
+      <div class="msg" id="login-error"></div>
+      <div class="form-group">
+        <label for="admin-key-input">Admin Key</label>
+        <input type="password" id="admin-key-input" placeholder="Enter your admin key" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Enter Dashboard</button>
+      <div class="login-foot">Authorised staff only</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="nav-overlay" id="nav-overlay" onclick="toggleNav(false)"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand">
+      <div class="brand-mark">OX</div>
+      <div><b>OX-Bridge</b><span>Admin Console</span></div>
+    </div>
+    <nav class="side-scroll" aria-label="Admin sections">
+      <div class="nav-group" data-group="Dashboard">
+        <div class="nav-group-label">Dashboard</div>
+        <div class="nav-item active" data-tab="overview" onclick="switchTab('overview')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="nl">Overview</span></div>
+        <div class="nav-item" data-tab="analytics" onclick="switchTab('analytics')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg><span class="nl">Usage &amp; Activity</span></div>
+      </div>
+      <div class="nav-group" data-group="Students">
+        <div class="nav-group-label">Students</div>
+        <div class="nav-item" data-tab="users" onclick="switchTab('users')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 20a6.5 6.5 0 0 0-3-5.5"/></svg><span class="nl">Users</span></div>
+        <div class="nav-item" data-tab="hubmon" onclick="switchTab('hubmon')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span class="nl">Hub Monitor</span></div>
+        <div class="nav-item" data-tab="messages" onclick="switchTab('messages')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span class="nl">Message Students</span></div>
+        <div class="nav-item" data-tab="hubmsg" onclick="switchTab('hubmsg')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l6 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M19 6a8 8 0 0 1 0 12"/></svg><span class="nl">Announcements</span></div>
+      </div>
+      <div class="nav-group" data-group="Publishing">
+        <div class="nav-group-label">Publishing</div>
+        <div class="nav-item" data-tab="blog" onclick="switchTab('blog')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v14a1 1 0 0 0 1 1H6a2 2 0 0 1-2-2z"/><path d="M18 8h2a1 1 0 0 1 1 1v9a2 2 0 0 1-2 2"/><path d="M8 8h6M8 12h6M8 16h4"/></svg><span class="nl">Blog (Loading Page)</span></div>
+        <div class="nav-item" data-tab="liveclass" onclick="switchTab('liveclass')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></svg><span class="nl">Live Class</span></div>
+      </div>
+      <div class="nav-group" data-group="Question Bank">
+        <div class="nav-group-label">Question Bank</div>
+        <div class="nav-item" data-tab="add-question" onclick="switchTab('add-question')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span class="nl">Add Question</span></div>
+        <div class="nav-item" data-tab="bulk-questions" onclick="switchTab('bulk-questions')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg><span class="nl">Bulk Add Questions</span></div>
+        <div class="nav-item" data-tab="past-question" onclick="switchTab('past-question')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg><span class="nl">Add Past Question</span></div>
+        <div class="nav-item" data-tab="theory" onclick="switchTab('theory')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6c-2-1.5-4.5-2-8-2v14c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2V4c-3.5 0-6 .5-8 2z"/><path d="M12 6v14"/></svg><span class="nl">WAEC/NECO Theory</span></div>
+        <div class="nav-item" data-tab="browse" onclick="switchTab('browse')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="nl">Browse Questions</span></div>
+      </div>
+      <div class="nav-group" data-group="Learning Content">
+        <div class="nav-group-label">Learning Content</div>
+        <div class="nav-item" data-tab="subjects-topics" onclick="switchTab('subjects-topics')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg><span class="nl">Subjects &amp; Topics</span></div>
+        <div class="nav-item" data-tab="diagrams" onclick="switchTab('diagrams')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg><span class="nl">Attach Diagram</span></div>
+      </div>
+      <div class="nav-group" data-group="Games">
+        <div class="nav-group-label">Games</div>
+        <div class="nav-item" data-tab="games" onclick="switchTab('games')"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="16" cy="11.5" r=".7"/><circle cx="18" cy="13.5" r=".7"/></svg><span class="nl">Games</span></div>
+      </div>
+    </nav>
+    <div class="side-foot">
+      <div class="avatar">A</div>
+      <div class="who"><b>Admin</b><span>Full access</span></div>
+      <button class="logout-btn" type="button" onclick="doLogout()" title="Log out">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="m16 8 4 4-4 4"/><path d="M20 12H9"/></svg>Log out
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" type="button" id="nav-toggle" onclick="toggleNav()" aria-label="Open menu">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="crumbs" aria-label="You are here">
+          <span id="crumb-group">Dashboard</span>
+          <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+          <b id="crumb-page">Overview</b>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="live-dot">Connected</span>
+        <button class="btn btn-ghost btn-sm" type="button" id="topbar-refresh" onclick="refreshTab()" title="Reload this page's data">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>Refresh</span>
+        </button>
+      </div>
+    </header>
+    <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="tab-panel" id="tab-overview">
+      <h2>Overview</h2>
+      <div class="sub">Quick snapshot of your users and content library</div>
+
+      <div class="section-title">Learning Hub</div>
+      <div class="stats-grid" id="hub-stats"><div class="stat-box"><div class="num">—</div><div class="label">Loading...</div></div></div>
+
+      <div class="section-title">AKSU Campus</div>
+      <div class="stats-grid" id="campus-stats"><div class="stat-box"><div class="num">—</div><div class="label">Loading...</div></div></div>
+      <div class="hint" id="overview-note" style="margin:-8px 0 20px;"></div>
+
+      <div class="section-title">Content</div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-box"><div class="num">—</div><div class="label">Total Questions</div></div>
+      </div>
+      <div class="card">
+        <h3>Questions by Subject & Level</h3>
+        <div id="stats-breakdown"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- USAGE & ACTIVITY -->
+    <div class="tab-panel hidden" id="tab-analytics">
+      <h2>Usage & Activity</h2>
+      <div class="sub">What students use, how often, and who is active each day (dates are UTC)</div>
+      <div class="card">
+        <div class="msg" id="an-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Period</label>
+            <select id="an-range" onchange="renderAnalytics()">
+              <option value="1">Today</option>
+              <option value="7" selected>Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="0">Everything loaded</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-ghost btn-sm" onclick="loadAnalytics(true)">Refresh</button>
+          </div>
+        </div>
+        <div class="hint" id="an-note"></div>
+      </div>
+      <div class="stats-grid" id="an-stats"></div>
+      <div class="card"><h3>Most used features</h3><div id="an-features"><p style="color:var(--muted);font-size:13px;">Loading...</p></div></div>
+      <div class="card"><h3>Most used endpoints</h3><div id="an-paths"></div></div>
+      <div class="card"><h3>Daily activity</h3><div style="overflow-x:auto;" id="an-daily"></div></div>
+      <div class="card"><h3>Most active students</h3><div style="overflow-x:auto;" id="an-top-users"></div></div>
+      <div class="card"><h3>Latest events</h3><div style="overflow-x:auto;" id="an-recent"></div></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-panel hidden" id="tab-users">
+      <h2>Users</h2>
+      <div class="sub">Look up one student's usage, or browse everyone who signed up</div>
+      <div class="card">
+        <h3>Look up a student</h3>
+        <div class="msg" id="usr-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Username</label><input id="usr-lookup" placeholder="exact username"></div>
+          <div class="form-group">
+            <label>App</label>
+            <select id="usr-app"><option value="auto">Auto-detect</option><option value="hub">Learning Hub</option><option value="campus">AKSU Campus</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="lookupUser()">View Usage</button>
+        <div id="usr-result" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>All students</h3>
+        <div class="msg" id="roster-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>App</label>
+            <select id="roster-app" onchange="loadRoster()"><option value="campus">AKSU Campus</option><option value="hub">Learning Hub</option></select>
+          </div>
+          <div class="form-group"><label>Search</label><input id="roster-search" placeholder="name, username, department" oninput="renderRoster()"></div>
+        </div>
+        <div style="overflow-x:auto;"><table id="roster-table"><tbody><tr><td style="color:var(--muted);">Loading...</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- MESSAGE STUDENTS -->
+    <div class="tab-panel hidden" id="tab-messages">
+      <h2>Message Students</h2>
+      <div class="sub">The message appears inside the app for the student (not email or SMS)</div>
+      <div class="card">
+        <div class="msg" id="msgs-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>App</label>
+            <select id="msgs-app"><option value="campus">AKSU Campus</option><option value="hub">Learning Hub</option></select>
+          </div>
+          <div class="form-group">
+            <label>Send to</label>
+            <select id="msgs-target" onchange="document.getElementById('msgs-user-wrap').classList.toggle('hidden', this.value !== 'one')">
+              <option value="all">Every student (broadcast)</option><option value="one">One student</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group hidden" id="msgs-user-wrap"><label>Username</label><input id="msgs-user" placeholder="exact username"></div>
+        <div class="form-group"><label>Message</label><textarea id="msgs-text" maxlength="500" placeholder="e.g. New WAEC Chemistry lessons are now live!"></textarea></div>
+        <button class="btn btn-primary" onclick="sendMessage()">Send Message</button>
+      </div>
+    </div>
+
+    <!-- ================= v3: GREETINGS & ANNOUNCEMENTS ================= -->
+    <div class="tab-panel hidden" id="tab-hubmsg">
+      <h2>Greetings &amp; Announcements</h2>
+      <div class="sub">Messages to Learning Hub students: directions, Christmas wishes, exam tips. They appear in the bell inside the app.</div>
+      <div class="card">
+        <h3>Write a message</h3>
+        <div class="msg" id="hx-msg-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Start from a template</label>
+            <select id="hx-msg-tpl" onchange="hxMsgUseTemplate()"><option value="">(write my own)</option></select></div>
+          <div class="form-group"><label>Type</label>
+            <select id="hx-msg-kind">
+              <option value="announcement">Announcement</option><option value="direction">Direction / instruction</option>
+              <option value="greeting">Greeting</option><option value="christmas">Christmas</option>
+              <option value="new_year">New Year</option><option value="exam_tip">Exam tip</option><option value="other">Other</option>
+            </select></div>
+        </div>
+        <div class="form-group"><label>Title</label><input id="hx-msg-title" maxlength="120" placeholder="e.g. Merry Christmas from OX-Bridge 🎄"></div>
+        <div class="form-group"><label>Message</label><textarea id="hx-msg-body" maxlength="2000" placeholder="Dear {name}, ..."></textarea>
+          <div class="hint">Type <code>{name}</code> and each student sees their own first name.</div></div>
+        <div class="form-row">
+          <div class="form-group"><label>Send to</label>
+            <select id="hx-msg-target" onchange="document.getElementById('hx-msg-user-wrap').classList.toggle('hidden', this.value !== 'one')">
+              <option value="all">Every Learning Hub student</option><option value="one">One student</option></select></div>
+          <div class="form-group hidden" id="hx-msg-user-wrap"><label>Username</label><input id="hx-msg-user" placeholder="exact username"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Send later (optional)</label><input type="datetime-local" id="hx-msg-sched">
+            <div class="hint">Leave empty to send now. Time is Nigeria time.</div></div>
+          <div class="form-group"><label>Hide after (optional)</label><input type="datetime-local" id="hx-msg-exp"></div>
+        </div>
+        <div class="form-group">
+          <label style="display:inline-flex;gap:6px;align-items:center;margin-right:18px;"><input type="checkbox" id="hx-msg-pin"> Pin</label>
+          <label style="display:inline-flex;gap:6px;align-items:center;"><input type="checkbox" id="hx-msg-push"> Also send a phone notification</label>
+        </div>
+        <button class="btn btn-primary" id="hx-msg-send" onclick="hxMsgSend()">Send</button>
+      </div>
+      <div class="card">
+        <h3>Sent messages</h3>
+        <button class="btn btn-ghost btn-sm" onclick="hxMsgHistory()" style="margin-bottom:12px;">Refresh</button>
+        <div style="overflow-x:auto;" id="hx-msg-history"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- ================= v3: HUB MONITOR ================= -->
+    <div class="tab-panel hidden" id="tab-hubmon">
+      <h2>Hub Monitor</h2>
+      <div class="sub">Who is using what in the Learning Hub, day by day (dates are UTC)</div>
+      <div class="card">
+        <h3>Who used a feature</h3>
+        <div class="msg" id="hx-who-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Feature</label><select id="hx-who-feature"></select></div>
+          <div class="form-group"><label>Period</label>
+            <select id="hx-who-days"><option value="1">Today</option><option value="7" selected>Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="hxWho()">Show</button>
+        <div id="hx-who-out" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>One day, everyone</h3>
+        <div class="msg" id="hx-day-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="date" id="hx-day-date"></div>
+          <div class="form-group" style="display:flex;align-items:flex-end;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="hxDaily()">Show day</button>
+            <button class="btn btn-ghost btn-sm" onclick="hxTrend()">Last 14 days</button></div>
+        </div>
+        <div id="hx-day-out" style="margin-top:12px;"></div>
+      </div>
+      <div class="card">
+        <h3>All Learning Hub students</h3>
+        <div class="msg" id="hx-usr-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Search</label><input id="hx-usr-search" placeholder="name, username or email" onkeydown="if(event.key==='Enter'){hxUsers(1)}"></div>
+          <div class="form-group"><label>Sort by</label>
+            <select id="hx-usr-sort" onchange="hxUsers(1)">
+              <option value="recent">Last active</option><option value="newest">Newest signup</option><option value="activity">Most actions</option>
+              <option value="score">Score</option><option value="streak">Streak</option><option value="coins">Coins</option><option value="username">Username (A-Z)</option>
+            </select></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="hxUsers(1)">Search</button>
+        <div style="overflow-x:auto;margin-top:12px;" id="hx-usr-table"></div>
+        <div id="hx-usr-pager" style="margin-top:10px;display:flex;gap:8px;align-items:center;"></div>
+        <div id="hx-usr-detail" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>Clean up old logs</h3>
+        <div class="msg" id="hx-prune-msg"></div>
+        <div class="hint" style="margin:0 0 10px;">Keeps your database small. Logs older than this many days are deleted (minimum 30).</div>
+        <div class="form-row"><div class="form-group"><input type="number" id="hx-prune-days" value="180" min="30"></div>
+          <div class="form-group"><button class="btn btn-danger btn-sm" onclick="hxPrune()">Delete old logs</button></div></div>
+      </div>
+    </div>
+
+    <!-- ================= v3: BLOG ================= -->
+    <div class="tab-panel hidden" id="tab-blog">
+      <h2>Blog (Loading Page)</h2>
+      <div class="sub">Posts here appear on the landing page and dashboard of the app: top students, education content, news.</div>
+      <div class="card">
+        <h3 id="hx-blog-form-title">New post</h3>
+        <div class="msg" id="hx-blog-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Title</label><input id="hx-blog-title" maxlength="200" placeholder="e.g. Meet this week's top students"></div>
+          <div class="form-group"><label>Category</label>
+            <select id="hx-blog-cat" onchange="hxBlogCatChange()">
+              <option value="top_students">🏆 Top Students</option><option value="education" selected>📚 Education</option>
+              <option value="announcement">📢 Announcement</option><option value="news">📰 News</option><option value="tip">💡 Study Tip</option>
+            </select></div>
+        </div>
+        <div class="form-group"><label>Short summary (optional)</label><input id="hx-blog-excerpt" maxlength="300" placeholder="One or two lines shown on the card"></div>
+        <div class="form-group"><label>Post</label><textarea id="hx-blog-body" style="min-height:160px;" placeholder="Write the full post here..."></textarea></div>
+        <div class="form-group hidden" id="hx-blog-students-wrap">
+          <label>Top students (one per line: Name | Score | Photo link)</label>
+          <textarea id="hx-blog-students" style="min-height:110px;" placeholder="Ada Obi | 98% | https://...jpg&#10;Tunde Bello | 95%"></textarea>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="hxBlogTopSuggest()" style="margin-top:6px;">Fill with this week's leaderboard</button>
+          <div class="hint">Make sure the students (or their parents) agree before you post names and photos publicly.</div>
+        </div>
+        <div class="form-group"><label>Cover photo (optional)</label>
+          <input type="file" id="hx-blog-file" accept="image/*" onchange="hxBlogPickImage(this.files[0])">
+          <div id="hx-blog-cover-wrap" class="hidden" style="margin-top:8px;"><img id="hx-blog-cover" style="max-width:220px;max-height:140px;border-radius:8px;display:block;margin-bottom:6px;" alt="">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="hxBlogClearImage()">Remove photo</button></div>
+        </div>
+        <div class="form-group">
+          <label style="display:inline-flex;gap:6px;align-items:center;margin-right:18px;"><input type="checkbox" id="hx-blog-pin"> Pin to top</label>
+          <label style="display:inline-flex;gap:6px;align-items:center;"><input type="checkbox" id="hx-blog-pub" checked> Published (untick to save as draft)</label>
+        </div>
+        <button class="btn btn-primary" id="hx-blog-save" onclick="hxBlogSave()">Publish post</button>
+        <button class="btn btn-ghost hidden" id="hx-blog-cancel" onclick="hxBlogReset()">Cancel editing</button>
+      </div>
+      <div class="card">
+        <h3>All posts</h3>
+        <div class="form-row"><div class="form-group"><select id="hx-blog-filter" onchange="hxBlogList()">
+          <option value="all">All</option><option value="published">Published</option><option value="draft">Drafts</option></select></div></div>
+        <div style="overflow-x:auto;" id="hx-blog-list"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- ================= v3: LIVE CLASS ================= -->
+    <div class="tab-panel hidden" id="tab-liveclass">
+      <h2>Live Class</h2>
+      <div class="sub">See the classrooms, remove bad messages and post announcements as the teacher</div>
+      <div class="card">
+        <h3>Classrooms</h3>
+        <div class="msg" id="hx-lc-msg"></div>
+        <button class="btn btn-ghost btn-sm" onclick="hxLcRooms()" style="margin-bottom:12px;">Refresh</button>
+        <div style="overflow-x:auto;" id="hx-lc-rooms"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+      <div class="card hidden" id="hx-lc-room-card">
+        <h3 id="hx-lc-room-title">Room</h3>
+        <div id="hx-lc-messages" style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;"></div>
+        <div class="form-group"><label>Announce as OX-Bridge Admin</label><textarea id="hx-lc-announce" maxlength="2000" placeholder="Class starts in 10 minutes..."></textarea></div>
+        <button class="btn btn-primary btn-sm" onclick="hxLcAnnounce()">Send announcement</button>
+        <button class="btn btn-ghost btn-sm" onclick="hxLcOpen(HX.lc.room)">Refresh messages</button>
+      </div>
+    </div>
+
+    <!-- ADD SINGLE QUESTION -->
+    <div class="tab-panel hidden" id="tab-add-question">
+      <h2>Add a Question</h2>
+      <div class="sub">Adds to the main question bank (WAEC/JAMB/NECO practice quizzes)</div>
+      <div class="card">
+        <div class="msg" id="aq-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="aq-subject" placeholder="e.g. Mathematics"></div>
+          <div class="form-group"><label>Level</label><input id="aq-level" placeholder="e.g. SSS3"></div>
+        </div>
+        <div class="form-group"><label>Topic (optional)</label><input id="aq-topic" placeholder="e.g. Quadratic Equations"></div>
+        <div class="form-group"><label>Question Text</label><textarea id="aq-question"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Option A</label><input id="aq-a"></div>
+          <div class="form-group"><label>Option B</label><input id="aq-b"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Option C</label><input id="aq-c"></div>
+          <div class="form-group"><label>Option D</label><input id="aq-d"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Correct Answer</label>
+            <select id="aq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+          </div>
+          <div class="form-group"><label>Source (optional)</label><input id="aq-source" placeholder="e.g. WAEC 2023"></div>
+        </div>
+        <div class="form-group"><label>Explanation (optional)</label><textarea id="aq-explanation"></textarea></div>
+        <button class="btn btn-primary" onclick="submitAddQuestion()">Add Question</button>
+      </div>
+    </div>
+
+    <!-- BULK ADD -->
+    <div class="tab-panel hidden" id="tab-bulk-questions">
+      <h2>Bulk Add Questions</h2>
+      <div class="sub">Paste a JSON array of questions, generated by DeepSeek/ChatGPT or your own script</div>
+      <div class="card">
+        <div class="msg" id="bulk-msg"></div>
+        <div class="form-group">
+          <label>Questions (JSON array)</label>
+          <textarea id="bulk-json" style="min-height:220px;font-family:monospace;font-size:12px;" placeholder='[
+  {
+    "subject": "Mathematics",
+    "level": "SSS3",
+    "topic": "Algebra",
+    "question_text": "Solve for x: 2x + 4 = 10",
+    "option_a": "3",
+    "option_b": "5",
+    "option_c": "2",
+    "option_d": "4",
+    "correct_answer": "A",
+    "explanation": "2x = 6, x = 3",
+    "source": "WAEC 2023"
+  }
+]'></textarea>
+          <div class="hint">Required fields per question: <code>subject</code>, <code>level</code>, <code>question_text</code>, <code>option_a</code>-<code>option_d</code>, <code>correct_answer</code>. Optional: <code>topic</code>, <code>explanation</code>, <code>source</code>.</div>
+        </div>
+        <button class="btn btn-primary" onclick="submitBulkQuestions()">Upload All Questions</button>
+      </div>
+    </div>
+
+    <!-- PAST QUESTION -->
+    <div class="tab-panel hidden" id="tab-past-question">
+      <h2>Add a Past Question</h2>
+      <div class="sub">Real WAEC/JAMB/NECO exam questions from a specific year</div>
+      <div class="card">
+        <div class="msg" id="pq-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type</label>
+            <select id="pq-exam"><option>WAEC</option><option>JAMB</option><option>NECO</option></select>
+          </div>
+          <div class="form-group"><label>Year</label><input id="pq-year" type="number" placeholder="e.g. 2023"></div>
+        </div>
+        <div class="form-group"><label>Subject</label><input id="pq-subject" placeholder="e.g. Physics"></div>
+        <div class="form-group"><label>Question Text</label><textarea id="pq-question"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Option A</label><input id="pq-a"></div>
+          <div class="form-group"><label>Option B</label><input id="pq-b"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Option C</label><input id="pq-c"></div>
+          <div class="form-group"><label>Option D</label><input id="pq-d"></div>
+        </div>
+        <div class="form-group">
+          <label>Correct Answer</label>
+          <select id="pq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+        </div>
+        <div class="form-group">
+          <label>Question Image (optional — for questions that need a diagram)</label>
+          <input type="file" id="pq-file" accept="image/*">
+          <div id="pq-preview" style="margin-top:10px;display:none;"><img id="pq-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <div class="form-group"><label>Explanation (optional)</label><textarea id="pq-explanation"></textarea></div>
+        <button class="btn btn-primary" onclick="submitPastQuestion()">Add Past Question</button>
+      </div>
+    </div>
+
+    <!-- SUBJECTS & TOPICS -->
+    <div class="tab-panel hidden" id="tab-subjects-topics">
+      <h2>Subjects & Topics</h2>
+      <div class="sub">Add a subject, then add topics with full lesson notes. Pick a WAEC or NECO track to build exam lessons.</div>
+
+      <div class="card">
+        <h3>Add a Subject</h3>
+        <div class="msg" id="subj-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Lesson Track</label>
+            <select id="subj-track">
+              <option value="">Regular class lesson</option>
+              <option value="WAEC">WAEC lesson</option>
+              <option value="NECO">NECO lesson</option>
+              <option value="WAEC/NECO">WAEC &amp; NECO lesson</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Level (optional for WAEC/NECO)</label><input id="subj-level" placeholder="e.g. SSS2"></div>
+        </div>
+        <div class="form-group"><label>Subject Name</label><input id="subj-name" placeholder="e.g. English Language"></div>
+        <div class="hint" style="margin:-4px 0 12px;">The track is saved with the level, e.g. <code>SSS3 WAEC</code>, so it still matches normal level filters.</div>
+        <button class="btn btn-primary btn-sm" onclick="submitAddSubject()">Add Subject</button>
+      </div>
+
+      <div class="card">
+        <h3>Add a Topic / Lesson</h3>
+        <div class="msg" id="topic-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject</label>
+            <select id="topic-subject-select"><option value="">Loading subjects...</option></select>
+          </div>
+          <div class="form-group"><label>Topic Title (keep it short)</label><input id="topic-title" placeholder="e.g. Essay Writing"></div>
+        </div>
+        <div class="form-group">
+          <label>Lesson Content (optional — long text is fine)</label>
+          <textarea id="topic-content" style="min-height:200px;" placeholder="Type or paste the lesson notes here..."></textarea>
+          <div class="hint" id="topic-content-count"></div>
+        </div>
+        <div class="form-group">
+          <label>By the end of this lesson, students should be able to (optional)</label>
+          <textarea id="topic-objectives" style="min-height:110px;" placeholder="One per line, e.g.&#10;Write a formal letter&#10;Structure an argumentative essay"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Diagram (optional)</label>
+          <input type="file" id="topic-file" accept="image/*">
+          <div id="topic-preview" style="margin-top:10px;display:none;"><img id="topic-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <button class="btn btn-primary" onclick="submitAddTopic()">Add Topic</button>
+        <div class="hint">The lesson content and objectives are saved with the topic, and the AI builds the student's lesson around them.</div>
+      </div>
+
+      <div class="card">
+        <h3>Existing Subjects</h3>
+        <div class="msg" id="subjlist-msg"></div>
+        <div class="form-group">
+          <label>Show</label>
+          <select id="subj-filter" onchange="renderSubjectList()">
+            <option value="">All subjects</option><option value="WAEC">WAEC lessons</option><option value="NECO">NECO lessons</option>
+          </select>
+        </div>
+        <div id="subject-list"><p style="color:var(--muted);font-size:13px;">Loading...</p></div>
+      </div>
+    </div>
+
+    <!-- DIAGRAMS -->
+    <div class="tab-panel hidden" id="tab-diagrams">
+      <h2>Attach a Diagram to a Topic</h2>
+      <div class="sub">Upload an image (via Cloudinary), then attach it to an existing topic. You can also add a short admin note that gets built into the AI's explanation for that topic.</div>
+      <div class="card">
+        <div class="msg" id="diagram-msg"></div>
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="diagram-subject-select" onchange="loadTopicsForDiagram()"><option value="">Loading subjects...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Topic</label>
+          <select id="diagram-topic-select"><option value="">Select a subject first</option></select>
+        </div>
+        <div class="form-group">
+          <label>Diagram Image</label>
+          <input type="file" id="diagram-file" accept="image/*">
+          <div id="diagram-preview" style="margin-top:10px;display:none;"><img id="diagram-preview-img" style="max-width:220px;border-radius:8px;"></div>
+        </div>
+        <div class="form-group"><label>Admin Note (optional — builds into the AI's explanation)</label><textarea id="diagram-notes" placeholder="e.g. Focus on the difference between axial and appendicular skeleton"></textarea></div>
+        <button class="btn btn-primary" onclick="submitDiagram()">Upload & Attach</button>
+      </div>
+    </div>
+
+    <!-- THEORY -->
+    <div class="tab-panel hidden" id="tab-theory">
+      <h2>Add WAEC/NECO Theory Question</h2>
+      <div class="sub">Essay/theory-style questions with a model answer</div>
+      <div class="card">
+        <div class="msg" id="theory-msg"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Exam Type</label>
+            <select id="theory-exam"><option>WAEC</option><option>NECO</option></select>
+          </div>
+          <div class="form-group"><label>Year</label><input id="theory-year" type="number" placeholder="e.g. 2023"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="theory-subject" placeholder="e.g. Chemistry"></div>
+          <div class="form-group"><label>Topic (optional)</label><input id="theory-topic" placeholder="e.g. Titration"></div>
+        </div>
+        <div class="form-group"><label>Question Text</label><textarea id="theory-question"></textarea></div>
+        <div class="form-group"><label>Model Answer (optional)</label><textarea id="theory-answer"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Marks</label><input id="theory-marks" type="number" value="10"></div>
+          <div class="form-group">
+            <label>Diagram (optional)</label>
+            <input type="file" id="theory-file" accept="image/*">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitTheory()">Add Theory Question</button>
+      </div>
+    </div>
+
+    <!-- BROWSE -->
+    <div class="tab-panel hidden" id="tab-browse">
+      <h2>Browse Questions</h2>
+      <div class="sub">Search and check what's already in the question bank</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group"><label>Subject</label><input id="browse-subject" placeholder="filter by subject"></div>
+          <div class="form-group"><label>Level</label><input id="browse-level" placeholder="filter by level"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadBrowseQuestions()">Search</button>
+        <div style="margin-top:16px;overflow-x:auto;">
+          <table id="browse-table">
+            <thead><tr><th>ID</th><th>Subject</th><th>Level</th><th>Question</th><th>Answer</th><th></th></tr></thead>
+            <tbody><tr><td colspan="6" style="color:var(--muted);">Search to see results</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAMES -->
+    <div class="tab-panel hidden" id="tab-games">
+      <h2>Games</h2>
+      <div class="sub">Create new games, add questions to any game, and manage the question bank</div>
+
+      <!-- Pool health -->
+      <div class="card">
+        <h3>Question pool</h3>
+        <div style="overflow-x:auto;" id="gm-stats"><span style="color:var(--muted);font-size:13px;">Loading...</span></div>
+        <div class="hint">Active questions per difficulty. Red = empty, gold = under 40, green = healthy. Players only get questions that exist here, so keep every column topped up.</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="gmRefreshStats()">Refresh counts</button>
+      </div>
+
+      <!-- Create / edit a game -->
+      <div class="card">
+        <h3 id="gm-def-title">Create a new game</h3>
+        <div class="hint" style="margin:-8px 0 14px;">A new game plays like Trivia: one question, one right answer and wrong options. Save it here, then add questions below or let AI write them from the topic.</div>
+        <div class="msg" id="gm-def-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Game ID (lowercase letters, numbers, underscore)</label><input id="gm-slug" placeholder="e.g. history_quiz" maxlength="21"></div>
+          <div class="form-group"><label>Game name</label><input id="gm-name" placeholder="e.g. Nigerian History" maxlength="40"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Icon (one emoji)</label><input id="gm-icon" placeholder="🎯" maxlength="8"></div>
+          <div class="form-group"><label>Short description</label><input id="gm-blurb" placeholder="e.g. How well do you know Nigeria's past?" maxlength="80"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Card colour (from)</label><input type="color" id="gm-c1" value="#6366f1"></div>
+          <div class="form-group"><label>Card colour (to)</label><input type="color" id="gm-c2" value="#818cf8"></div>
+        </div>
+        <div class="form-group">
+          <label>Topic (what the questions are about - the AI uses this too)</label>
+          <textarea id="gm-topic" maxlength="400" placeholder="e.g. Nigerian history from pre-colonial kingdoms to independence in 1960"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="gm-enabled"><option value="true">Live (players can see it)</option><option value="false">Hidden</option></select>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="gm-def-btn" onclick="gmSaveDef()">Create game</button>
+          <button class="btn btn-ghost" onclick="gmClearDef();gmHideMsg('gm-def-msg')">Clear</button>
+        </div>
+        <div class="section-title" style="margin-top:24px;">Your custom games</div>
+        <div id="gm-defs"><span style="color:var(--muted);font-size:13px;">Loading...</span></div>
+      </div>
+
+      <!-- Add questions -->
+      <div class="card">
+        <h3>Add questions to a game</h3>
+        <div class="msg" id="gm-add-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Game</label><select id="gm-game" onchange="gmRenderForm()"></select></div>
+          <div class="form-group">
+            <label>Level</label>
+            <select id="gm-level"><option value="Junior">Junior (primary school, 8-12)</option><option value="Senior">Senior (secondary / WAEC, 13-18)</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select id="gm-tier"><option value="0">Easy</option><option value="1">Medium</option><option value="2">Hard</option></select>
+        </div>
+
+        <div id="gm-form"></div>
+        <button class="btn btn-primary" onclick="gmSubmitOne()">Add question</button>
+
+        <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:16px;">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('gm-bulk-wrap').classList.toggle('hidden')">Paste many at once (JSON)</button>
+          <div id="gm-bulk-wrap" class="hidden" style="margin-top:12px;">
+            <div class="msg" id="gm-bulk-msg"></div>
+            <div class="form-group">
+              <label>JSON array of questions for the game, level and difficulty chosen above</label>
+              <textarea id="gm-bulk-json" style="min-height:140px;font-family:monospace;font-size:12px;" placeholder="[ ... ]"></textarea>
+            </div>
+            <div class="hint" id="gm-bulk-hint"></div>
+            <button class="btn btn-primary" style="margin-top:10px;" onclick="gmSubmitBulk()">Add all</button>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:16px;">
+          <div class="section-title">Or let AI write them</div>
+          <div class="msg" id="gm-gen-msg"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Rounds (each round is about 15 questions)</label>
+              <select id="gm-rounds"><option>1</option><option>2</option><option>3</option></select>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;">
+              <button class="btn btn-ghost btn-full" id="gm-gen-btn" onclick="gmGenerate()">Generate with AI</button>
+            </div>
+          </div>
+          <div class="hint">Uses the game and level chosen above. Duplicates are skipped automatically. More rounds take longer, so start with 1.</div>
+        </div>
+      </div>
+
+      <!-- Browse & manage -->
+      <div class="card">
+        <h3>Browse &amp; manage questions</h3>
+        <div class="msg" id="gm-list-msg"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Game</label><select id="gm-f-game"></select></div>
+          <div class="form-group">
+            <label>Level</label>
+            <select id="gm-f-level"><option value="">All levels</option><option>Junior</option><option>Senior</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Source</label>
+            <select id="gm-f-source"><option value="">All sources</option><option value="admin">Admin (added by hand)</option><option value="ai">AI</option><option value="seed">Seed</option></select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="gm-f-active"><option value="">All</option><option value="true">Active</option><option value="false">Hidden</option></select>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="gmBrowse(true)">Search</button>
+        <div style="margin-top:16px;overflow-x:auto;">
+          <table>
+            <thead><tr><th>ID</th><th>Game</th><th>Level</th><th>Diff.</th><th>Question</th><th>Source</th><th>Status</th><th></th></tr></thead>
+            <tbody id="gm-items"><tr><td colspan="8" style="color:var(--muted);">Loading...</td></tr></tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap;">
+          <span id="gm-page-info" style="font-size:12.5px;color:var(--muted);"></span>
+          <span style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" id="gm-prev" onclick="gmPage(-1)">Previous</button>
+            <button class="btn btn-ghost btn-sm" id="gm-next" onclick="gmPage(1)">Next</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div>
+
+<script>
+const API = "https://ox-bridge-learning.onrender.com";
+let ADMIN_KEY = localStorage.getItem('oxbridge_admin_key') || '';
+
+function hdrs(){ return {"Content-Type":"application/json","X-Admin-Key":ADMIN_KEY}; }
+
+function doLogin(){
+  document.getElementById('login-error').className = 'msg';
+  const key = document.getElementById('admin-key-input').value.trim();
+  if(!key){ showLoginError('Please enter your admin key'); return; }
+  ADMIN_KEY = key;
+  // Verify the key actually works before entering
+  fetch(`${API}/admin/questions/count`, {headers: hdrs()})
+    .then(r => {
+      if(r.status === 401){ showLoginError('Invalid admin key'); return; }
+      if(r.status === 500){ showLoginError('Server has no admin key configured'); return; }
+      localStorage.setItem('oxbridge_admin_key', key);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      loadOverview();
+      loadSubjectsIntoSelects();
+    })
+    .catch(() => showLoginError('Could not reach the server. Check your internet.'));
+}
+
+function showLoginError(msg){
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.className = 'msg error';
+}
+
+function doLogout(){
+  localStorage.removeItem('oxbridge_admin_key');
+  location.reload();
+}
+
+function switchTab(tab){
+  window.CURRENT_TAB = tab;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+  setCrumbs(tab);
+  toggleNav(false);
+  window.scrollTo(0, 0);
+  if(tab === 'overview') loadOverview();
+  if(tab === 'analytics') loadAnalytics(false);
+  if(tab === 'users' && !ROSTER.loaded) loadRoster();
+  if(tab === 'subjects-topics') loadSubjectList();
+  if(tab === 'games') gmLoadAll();
+  if(tab === 'hubmsg') hxMsgInit();
+  if(tab === 'hubmon') hxMonInit();
+  if(tab === 'blog') hxBlogInit();
+  if(tab === 'liveclass') hxLcInit();
+}
+
+// ----- navigation helpers (breadcrumb, mobile menu, refresh) -----
+function setCrumbs(tab){
+  const it = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+  if(!it) return;
+  const grp = it.closest('.nav-group');
+  document.getElementById('crumb-group').textContent = grp ? grp.dataset.group : '';
+  document.getElementById('crumb-page').textContent = it.querySelector('.nl').textContent;
+}
+function toggleNav(open){
+  const on = (open === undefined) ? !document.body.classList.contains('nav-open') : !!open;
+  document.body.classList.toggle('nav-open', on);
+}
+function refreshTab(){ switchTab(window.CURRENT_TAB || 'overview'); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') toggleNav(false); });
+window.addEventListener('resize', () => { if(window.innerWidth > 960) toggleNav(false); });
+
+function showMsg(id, text, type){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + type;
+}
+
+// Escapes text that comes from users (usernames, messages, paths) before it goes into innerHTML
+function esc(v){
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function safeJson(r){ try{ return await r.json(); }catch(e){ return {}; } }
+function statBox(num, label){ const shown = (typeof num === 'number') ? num.toLocaleString() : num; return `<div class="stat-box"><div class="num">${esc(shown)}</div><div class="label">${esc(label)}</div></div>`; }
+
+// Shows a preview of a chosen image file
+function bindPreview(fileId, previewId, imgId){
+  document.getElementById(fileId)?.addEventListener('change', function(){
+    const file = this.files[0];
+    if(!file){ document.getElementById(previewId).style.display = 'none'; return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById(imgId).src = e.target.result;
+      document.getElementById(previewId).style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Uploads an image through the existing /upload/image endpoint, returns the URL (or throws with a readable message)
+async function uploadImage(file){
+  const form = new FormData();
+  form.append('file', file);
+  const r = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+  const d = await safeJson(r);
+  if(!r.ok || !d.url) throw new Error(d.detail || 'Image upload failed');
+  return d.url;
+}
+
+// ---------- Overview ----------
+async function loadOverview(){
+  // Content stats (unchanged)
+  try{
+    const r = await fetch(`${API}/admin/questions/count`, {headers: hdrs()});
+    const d = await r.json();
+    document.getElementById('stats-grid').innerHTML = statBox(d.total, 'Total Questions');
+    const breakdown = document.getElementById('stats-breakdown');
+    const entries = Object.entries(d.by_subject_level || {});
+    if(!entries.length){ breakdown.innerHTML = '<p style="color:var(--muted);font-size:13px;">No questions yet.</p>'; }
+    else breakdown.innerHTML = entries.map(([k,v]) => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span>${esc(k)}</span><span class="tag">${esc(v)}</span>
+      </div>`).join('');
+  }catch(e){}
+
+  // User stats for both apps
+  const get = path => fetch(`${API}${path}`, {headers: hdrs()}).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [hub, campus] = await Promise.all([get('/admin/monitor/overview'), get('/admin/campus/monitor/overview')]);
+
+  // Accurate AI-chat and 7-day numbers come from the activity log
+  let ai = null, active7 = null, note = '';
+  try{
+    const events = await ensureActivity(false);
+    const today = utcDay(0), start7 = utcDay(6);
+    const seen = new Set();
+    ai = 0;
+    for(const ev of events){
+      const day = (ev.created_at || '').slice(0,10);
+      if(day === today && featureOf(ev) === 'ai_chat') ai++;
+      if(day >= start7 && ev.username) seen.add(ev.username);
+    }
+    active7 = seen.size;
+    const oldest = (events[events.length-1]?.created_at || '').slice(0,10);
+    if(ACT.truncated && oldest > start7) note = `Only the latest ${ACT_LIMIT} events are loaded (back to ${oldest}), so the 7-day number may be low.`;
+  }catch(e){}
+
+  document.getElementById('hub-stats').innerHTML = hub
+    ? statBox(hub.total_users, 'Total users') + statBox(hub.active_users_today, 'Active today')
+      + statBox(active7 == null ? '—' : active7, 'Active last 7 days')
+      + statBox(ai == null ? hub.ai_calls_today : ai, 'AI chats today')
+    : statBox('—', 'Could not load');
+  document.getElementById('campus-stats').innerHTML = campus
+    ? statBox(campus.total_users, 'Total students') + statBox(campus.active_users_today, 'Active today')
+      + statBox(campus.premium_users, 'Premium') + statBox(campus.signups_today, 'Signups today')
+      + statBox(campus.mock_tests_today, 'Tests today')
+    : statBox('—', 'Could not load');
+  document.getElementById('overview-note').textContent = note;
+}
+
+// ---------- Add single question ----------
+async function submitAddQuestion(){
+  const payload = {
+    subject: document.getElementById('aq-subject').value.trim(),
+    level: document.getElementById('aq-level').value.trim(),
+    topic: document.getElementById('aq-topic').value.trim() || null,
+    question_text: document.getElementById('aq-question').value.trim(),
+    option_a: document.getElementById('aq-a').value.trim(),
+    option_b: document.getElementById('aq-b').value.trim(),
+    option_c: document.getElementById('aq-c').value.trim(),
+    option_d: document.getElementById('aq-d').value.trim(),
+    correct_answer: document.getElementById('aq-correct').value,
+    explanation: document.getElementById('aq-explanation').value.trim() || null,
+    source: document.getElementById('aq-source').value.trim() || 'manual',
+  };
+  if(!payload.subject || !payload.level || !payload.question_text || !payload.option_a || !payload.option_b || !payload.option_c || !payload.option_d){
+    showMsg('aq-msg', 'Please fill in all required fields', 'error'); return;
+  }
+  try{
+    const r = await fetch(`${API}/admin/add-question`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('aq-msg', 'Question added successfully!', 'success');
+      ['aq-question','aq-a','aq-b','aq-c','aq-d','aq-explanation','aq-topic'].forEach(id => document.getElementById(id).value = '');
+    }else{
+      showMsg('aq-msg', d.detail || 'Could not add question', 'error');
+    }
+  }catch(e){ showMsg('aq-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Bulk add ----------
+async function submitBulkQuestions(){
+  let questions;
+  try{
+    questions = JSON.parse(document.getElementById('bulk-json').value);
+    if(!Array.isArray(questions)) throw new Error();
+  }catch(e){
+    showMsg('bulk-msg', 'Invalid JSON — make sure it is a valid array of question objects', 'error');
+    return;
+  }
+  try{
+    const r = await fetch(`${API}/admin/add-questions-bulk`, {method:'POST', headers: hdrs(), body: JSON.stringify({questions})});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('bulk-msg', d.msg || `${questions.length} questions added!`, 'success');
+      document.getElementById('bulk-json').value = '';
+    }else{
+      showMsg('bulk-msg', d.detail || 'Could not add questions', 'error');
+    }
+  }catch(e){ showMsg('bulk-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Past question ----------
+async function submitPastQuestion(){
+  const payload = {
+    exam_type: document.getElementById('pq-exam').value,
+    year: parseInt(document.getElementById('pq-year').value),
+    subject: document.getElementById('pq-subject').value.trim(),
+    question_text: document.getElementById('pq-question').value.trim(),
+    option_a: document.getElementById('pq-a').value.trim(),
+    option_b: document.getElementById('pq-b').value.trim(),
+    option_c: document.getElementById('pq-c').value.trim(),
+    option_d: document.getElementById('pq-d').value.trim(),
+    correct_answer: document.getElementById('pq-correct').value,
+    explanation: document.getElementById('pq-explanation').value.trim() || null,
+    image_url: null,
+  };
+  if(!payload.year || !payload.subject || !payload.question_text){
+    showMsg('pq-msg', 'Please fill in all required fields', 'error'); return;
+  }
+  try{
+    const file = document.getElementById('pq-file').files[0];
+    if(file){
+      showMsg('pq-msg', 'Uploading image...', 'success');
+      try{ payload.image_url = await uploadImage(file); }
+      catch(err){ showMsg('pq-msg', err.message + ' — question not saved', 'error'); return; }
+    }
+    const r = await fetch(`${API}/admin/add-past-question`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await safeJson(r);
+    if(r.ok){
+      if(payload.image_url && !d.has_image){
+        showMsg('pq-msg', 'Question saved, but the image was NOT stored — the backend needs the past-question image update first.', 'error');
+      }else{
+        showMsg('pq-msg', payload.image_url ? 'Past question added with image!' : 'Past question added!', 'success');
+      }
+      ['pq-question','pq-a','pq-b','pq-c','pq-d','pq-explanation'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pq-file').value = '';
+      document.getElementById('pq-preview').style.display = 'none';
+    }else{
+      showMsg('pq-msg', d.detail || 'Could not add past question', 'error');
+    }
+  }catch(e){ showMsg('pq-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Subjects & Topics ----------
+async function submitAddSubject(){
+  const name = document.getElementById('subj-name').value.trim();
+  const levelText = document.getElementById('subj-level').value.trim();
+  const track = document.getElementById('subj-track').value;
+  const level = [levelText, track].filter(Boolean).join(' ');
+  if(!name || !level){ showMsg('subj-msg', 'Enter a subject name and a level or a WAEC/NECO track', 'error'); return; }
+  try{
+    const r = await fetch(`${API}/admin/add-subject`, {method:'POST', headers: hdrs(), body: JSON.stringify({name, level})});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('subj-msg', 'Subject added!', 'success');
+      document.getElementById('subj-name').value = ''; document.getElementById('subj-level').value = '';
+      document.getElementById('subj-track').value = '';
+      loadSubjectsIntoSelects();
+      loadSubjectList();
+    }else{
+      showMsg('subj-msg', d.detail || 'Could not add subject', 'error');
+    }
+  }catch(e){ showMsg('subj-msg', 'Connection error', 'error'); }
+}
+
+async function loadSubjectsIntoSelects(){
+  try{
+    const r = await fetch(`${API}/subjects`);
+    const d = await r.json();
+    const subjects = Array.isArray(d) ? d : (d.subjects || []);
+    const opts = '<option value="">Select a subject</option>' + subjects.map(s =>
+      `<option value="${s.id}">${s.name} (${s.level})</option>`).join('');
+    const topicSel = document.getElementById('topic-subject-select');
+    const diagramSel = document.getElementById('diagram-subject-select');
+    if(topicSel) topicSel.innerHTML = opts;
+    if(diagramSel) diagramSel.innerHTML = opts;
+  }catch(e){}
+}
+
+// Sends a JSON POST and reports what went wrong in plain words
+async function postJson(path, body){
+  let r;
+  try{ r = await fetch(`${API}${path}`, {method:'POST', headers: hdrs(), body: JSON.stringify(body)}); }
+  catch(e){ return {ok:false, network:true, status:0, data:{}}; }
+  return {ok: r.ok, network:false, status: r.status, data: await safeJson(r)};
+}
+function failText(res, what){
+  if(res.network) return `${what}: the server sent no response. If this only happens with long text, the server probably crashed on it — check the Render logs.`;
+  const d = res.data || {};
+  const detail = typeof d.detail === 'string' ? d.detail : (Array.isArray(d.detail) ? d.detail.map(x => x.msg).join('; ') : '');
+  return `${what} (error ${res.status})${detail ? ': ' + detail : ''}`;
+}
+
+// Joins the lesson text and the "students should be able to" list into the single note the backend stores
+function buildLessonNotes(content, objectives){
+  const parts = [];
+  if(content) parts.push(content);
+  const lines = objectives.split('\n').map(l => l.replace(/^\s*(?:[-•*]|\d+[.)])\s+/, '').trim()).filter(Boolean);
+  if(lines.length) parts.push('By the end of this lesson, students should be able to:\n' + lines.map(l => '- ' + l).join('\n'));
+  return parts.join('\n\n');
+}
+
+let PENDING_TOPIC = null;   // a topic that was created but whose lesson content didn't save yet — retry re-uses it, no duplicate
+
+async function submitAddTopic(){
+  const subject_id = document.getElementById('topic-subject-select').value;
+  const title = document.getElementById('topic-title').value.trim();
+  const content = document.getElementById('topic-content').value.trim();
+  const objectives = document.getElementById('topic-objectives').value;
+  const file = document.getElementById('topic-file').files[0];
+  if(!subject_id || !title){ showMsg('topic-msg', 'Please select a subject and enter a title', 'error'); return; }
+  const notes = buildLessonNotes(content, objectives);
+
+  showMsg('topic-msg', 'Saving...', 'success');
+  let topicId;
+  if(PENDING_TOPIC && PENDING_TOPIC.subject_id === subject_id && PENDING_TOPIC.title === title){
+    topicId = PENDING_TOPIC.id;
+  }else{
+    const res = await postJson('/admin/add-topic', {title, subject_id: parseInt(subject_id)});
+    if(!res.ok){ showMsg('topic-msg', failText(res, 'Could not add topic'), 'error'); return; }
+    topicId = res.data.id;
+    PENDING_TOPIC = {id: topicId, subject_id, title};
+  }
+
+  if(notes || file){
+    let imageUrl = null;
+    if(file){
+      showMsg('topic-msg', 'Uploading diagram...', 'success');
+      try{ imageUrl = await uploadImage(file); }
+      catch(err){ showMsg('topic-msg', `Topic added, but the diagram failed: ${err.message}. Click Add Topic again to retry.`, 'error'); return; }
+    }
+    showMsg('topic-msg', 'Saving lesson content...', 'success');
+    const att = await postJson(`/admin/topic/${topicId}/attach`, {image_url: imageUrl, admin_notes: notes || null});
+    if(!att.ok){
+      showMsg('topic-msg', failText(att, 'Topic added, but the lesson content was not saved') + ' Click Add Topic again to retry.', 'error');
+      return;
+    }
+  }
+
+  PENDING_TOPIC = null;
+  showMsg('topic-msg', (notes || file) ? 'Topic and lesson saved!' : 'Topic added!', 'success');
+  ['topic-title','topic-content','topic-objectives'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('topic-file').value = '';
+  document.getElementById('topic-preview').style.display = 'none';
+  document.getElementById('topic-content-count').textContent = '';
+  loadSubjectList();
+}
+
+document.getElementById('topic-content')?.addEventListener('input', function(){
+  document.getElementById('topic-content-count').textContent = this.value.length ? `${this.value.length.toLocaleString()} characters` : '';
+});
+
+// ---------- Diagrams ----------
+async function loadTopicsForDiagram(){
+  const subjectId = document.getElementById('diagram-subject-select').value;
+  const topicSel = document.getElementById('diagram-topic-select');
+  if(!subjectId){ topicSel.innerHTML = '<option value="">Select a subject first</option>'; return; }
+  try{
+    const r = await fetch(`${API}/subjects/${subjectId}/topics`);
+    const d = await r.json();
+    const topics = Array.isArray(d) ? d : (d.topics || []);
+    topicSel.innerHTML = '<option value="">Select a topic</option>' + topics.map(t =>
+      `<option value="${t.id}">${t.title}</option>`).join('');
+  }catch(e){ topicSel.innerHTML = '<option value="">Could not load topics</option>'; }
+}
+
+bindPreview('diagram-file', 'diagram-preview', 'diagram-preview-img');
+bindPreview('pq-file', 'pq-preview', 'pq-preview-img');
+bindPreview('topic-file', 'topic-preview', 'topic-preview-img');
+
+async function submitDiagram(){
+  const topicId = document.getElementById('diagram-topic-select').value;
+  const file = document.getElementById('diagram-file').files[0];
+  const notes = document.getElementById('diagram-notes').value.trim();
+  if(!topicId){ showMsg('diagram-msg', 'Please select a topic', 'error'); return; }
+  if(!file && !notes){ showMsg('diagram-msg', 'Add an image, a note, or both', 'error'); return; }
+
+  let imageUrl = null;
+  try{
+    if(file){
+      showMsg('diagram-msg', 'Uploading image...', 'success');
+      const form = new FormData();
+      form.append('file', file);
+      const uploadR = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+      const uploadD = await uploadR.json();
+      if(!uploadR.ok || !uploadD.url){ showMsg('diagram-msg', uploadD.detail || 'Image upload failed', 'error'); return; }
+      imageUrl = uploadD.url;
+    }
+    const attachR = await fetch(`${API}/admin/topic/${topicId}/attach`, {
+      method:'POST', headers: hdrs(),
+      body: JSON.stringify({ image_url: imageUrl, admin_notes: notes || null })
+    });
+    const attachD = await attachR.json();
+    if(attachR.ok){
+      showMsg('diagram-msg', 'Diagram attached to topic!', 'success');
+      document.getElementById('diagram-file').value = '';
+      document.getElementById('diagram-notes').value = '';
+      document.getElementById('diagram-preview').style.display = 'none';
+    }else{
+      showMsg('diagram-msg', attachD.detail || 'Could not attach diagram', 'error');
+    }
+  }catch(e){ showMsg('diagram-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Theory ----------
+async function submitTheory(){
+  const file = document.getElementById('theory-file').files[0];
+  let imageUrl = null;
+  try{
+    if(file){
+      showMsg('theory-msg', 'Uploading diagram...', 'success');
+      const form = new FormData();
+      form.append('file', file);
+      const uploadR = await fetch(`${API}/upload/image`, {method:'POST', body: form});
+      const uploadD = await uploadR.json();
+      if(uploadR.ok && uploadD.url) imageUrl = uploadD.url;
+    }
+    const payload = {
+      exam_type: document.getElementById('theory-exam').value,
+      year: parseInt(document.getElementById('theory-year').value),
+      subject: document.getElementById('theory-subject').value.trim(),
+      topic: document.getElementById('theory-topic').value.trim() || null,
+      question_text: document.getElementById('theory-question').value.trim(),
+      model_answer: document.getElementById('theory-answer').value.trim() || null,
+      image_url: imageUrl,
+      marks: parseInt(document.getElementById('theory-marks').value) || 10,
+    };
+    if(!payload.year || !payload.subject || !payload.question_text){
+      showMsg('theory-msg', 'Please fill in year, subject, and question text', 'error'); return;
+    }
+    const r = await fetch(`${API}/admin/add-waec-theory`, {method:'POST', headers: hdrs(), body: JSON.stringify(payload)});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('theory-msg', 'Theory question added!', 'success');
+      ['theory-topic','theory-question','theory-answer'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('theory-file').value = '';
+    }else{
+      showMsg('theory-msg', d.detail || 'Could not add theory question', 'error');
+    }
+  }catch(e){ showMsg('theory-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Browse ----------
+async function loadBrowseQuestions(){
+  const subject = document.getElementById('browse-subject').value.trim();
+  const level = document.getElementById('browse-level').value.trim();
+  const params = new URLSearchParams();
+  if(subject) params.set('subject', subject);
+  if(level) params.set('level', level);
+  try{
+    const r = await fetch(`${API}/admin/questions?${params}`, {headers: hdrs()});
+    const d = await r.json();
+    const tbody = document.querySelector('#browse-table tbody');
+    if(!d.questions || !d.questions.length){
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No questions found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.questions.map(q => `
+      <tr>
+        <td>${q.id}</td><td>${esc(q.subject)}</td><td>${esc(q.level)}</td>
+        <td style="max-width:280px;">${esc((q.question_text||'').slice(0,80))}${q.question_text?.length > 80 ? '...' : ''}</td>
+        <td><span class="tag">${q.correct_answer}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteQuestion(${q.id})">Delete</button></td>
+      </tr>`).join('');
+  }catch(e){}
+}
+
+async function deleteQuestion(id){
+  if(!confirm('Delete this question permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/question/${id}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){ loadBrowseQuestions(); }
+  }catch(e){}
+}
+
+// ---------- Subject list (WAEC/NECO lessons live here too) ----------
+let SUBJECTS_CACHE = [];
+
+async function loadSubjectList(){
+  try{
+    const r = await fetch(`${API}/subjects`);
+    const d = await r.json();
+    SUBJECTS_CACHE = Array.isArray(d) ? d : (d.subjects || []);
+    renderSubjectList();
+  }catch(e){
+    document.getElementById('subject-list').innerHTML = '<p style="color:var(--muted);font-size:13px;">Could not load subjects.</p>';
+  }
+}
+
+function renderSubjectList(){
+  const filter = document.getElementById('subj-filter').value;
+  const list = SUBJECTS_CACHE.filter(s => !filter || String(s.level || '').toUpperCase().includes(filter));
+  const box = document.getElementById('subject-list');
+  if(!list.length){ box.innerHTML = '<p style="color:var(--muted);font-size:13px;">No subjects here yet.</p>'; return; }
+  box.innerHTML = list.map(s => `
+    <div class="subj-row">
+      <div class="subj-head">
+        <span>${esc(s.name)} <span class="tag">${esc(s.level)}</span></span>
+        <span class="subj-actions">
+          <button class="btn btn-ghost btn-sm" onclick="toggleTopics(${s.id})">Topics</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id})">Delete</button>
+        </span>
+      </div>
+      <div class="topic-list hidden" id="subj-topics-${s.id}"></div>
+    </div>`).join('');
+}
+
+async function toggleTopics(subjectId){
+  const box = document.getElementById(`subj-topics-${subjectId}`);
+  if(!box.classList.contains('hidden')){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = '<span style="color:var(--muted);font-size:13px;">Loading...</span>';
+  try{
+    const r = await fetch(`${API}/subjects/${subjectId}/topics`);
+    const d = await r.json();
+    const topics = Array.isArray(d) ? d : (d.topics || []);
+    box.innerHTML = topics.length ? topics.map(t => `
+      <div class="topic-item">
+        <span>${esc(t.title)} ${t.has_image ? '<span class="tag">image</span>' : ''}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteTopic(${t.id}, ${subjectId})">Delete</button>
+      </div>`).join('') : '<span style="color:var(--muted);font-size:13px;">No topics yet — add one above.</span>';
+  }catch(e){ box.innerHTML = '<span style="color:var(--danger);font-size:13px;">Could not load topics.</span>'; }
+}
+
+async function deleteTopic(topicId, subjectId){
+  if(!confirm('Delete this topic permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/topic/${topicId}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){
+      document.getElementById(`subj-topics-${subjectId}`).classList.add('hidden');
+      toggleTopics(subjectId);
+    }else{
+      const d = await safeJson(r); showMsg('subjlist-msg', d.detail || 'Could not delete topic', 'error');
+    }
+  }catch(e){ showMsg('subjlist-msg', 'Connection error', 'error'); }
+}
+
+async function deleteSubject(subjectId){
+  if(!confirm('Delete this subject and ALL its topics permanently?')) return;
+  try{
+    const r = await fetch(`${API}/admin/subject/${subjectId}`, {method:'DELETE', headers: hdrs()});
+    if(r.ok){ loadSubjectList(); loadSubjectsIntoSelects(); }
+    else{ const d = await safeJson(r); showMsg('subjlist-msg', d.detail || 'Could not delete subject', 'error'); }
+  }catch(e){ showMsg('subjlist-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Activity log helpers ----------
+const ACT_LIMIT = 5000;
+const ACT = {data: null, at: 0, truncated: false};
+
+// Features the backend only logs after the backend update — until then they show "not tracked yet"
+const NEEDS_BACKEND = new Set(['past_questions','waec_theory_explain','waec_theory_browse','gpt_chat']);
+
+const FEATURE_LABELS = {
+  ai_chat:'AI Tutor messages', ai_vision:'AI image questions', ai_other:'AI chat history / clear',
+  theory_view:'Theory lessons opened', past_questions:'Past questions (WAEC/NECO/JAMB)',
+  waec_theory_explain:'WAEC/NECO theory explanations', waec_theory_browse:'WAEC/NECO theory browsing',
+  gpt_chat:'OX-BridgeGPT chats', quiz_submit:'Quizzes submitted', game_played:'Games played', web_search:'Web searches',
+  login:'Hub logins', signup:'Hub signups',
+  campus_login:'Campus logins', campus_register:'Campus signups', campus_gst_submit:'Campus GST tests',
+  campus_course_submit:'Campus course tests', campus_feedback:'Campus feedback', cgpa_saved:'CGPA saved',
+  payment_initiated:'Payments started', payment_verified:'Payments verified', image_uploaded:'Images uploaded'
+};
+function labelFor(f){ return FEATURE_LABELS[f] || f; }
+
+// The backend logs every /ai/chat* path as "ai_chat" (including history and clear), so split them by path
+function featureOf(ev){
+  const a = ev.action, p = ev.path || '';
+  if(a === 'ai_chat'){
+    if(p === '/ai/chat') return 'ai_chat';
+    if(p === '/ai/chat/vision') return 'ai_vision';
+    return 'ai_other';
+  }
+  if(a === 'waec_theory') return p.startsWith('/waec-theory/explain') ? 'waec_theory_explain' : 'waec_theory_browse';
+  return a || 'unknown';
+}
+
+function normPath(p){
+  if(p.startsWith('/search/web/')) return '/search/web/{query}';
+  if(p.startsWith('/ai/chat/history/')) return '/ai/chat/history/{username}';
+  if(p.startsWith('/past-questions/')) return '/past-questions/{exam}/{subject}';
+  return p.replace(/\/\d+/g, '/{id}');
+}
+
+function utcDay(daysAgo){ return new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0,10); }
+
+async function ensureActivity(force){
+  if(!force && ACT.data && Date.now() - ACT.at < 60000) return ACT.data;
+  const r = await fetch(`${API}/admin/monitor/activity?limit=${ACT_LIMIT}`, {headers: hdrs()});
+  if(!r.ok) throw new Error('Could not load activity');
+  const d = await r.json();
+  ACT.data = Array.isArray(d) ? d.filter(e => e.created_at) : [];
+  ACT.at = Date.now();
+  ACT.truncated = Array.isArray(d) && d.length >= ACT_LIMIT;
+  return ACT.data;
+}
+
+function trackedFeatures(){
+  const set = new Set();
+  (ACT.data || []).forEach(ev => set.add(featureOf(ev)));
+  return set;
+}
+
+function summarize(events){
+  const byFeature = {}, byPath = {}, byDay = {}, byUser = {};
+  for(const ev of events){
+    const f = featureOf(ev);
+    const day = ev.created_at.slice(0,10);
+    const u = ev.username || null;
+    const np = normPath(ev.path || '');
+    byPath[np] = (byPath[np] || 0) + 1;
+    if(!byDay[day]) byDay[day] = {users: new Set(), total: 0, feats: {}};
+    if(u) byDay[day].users.add(u);
+    if(f === 'ai_other') continue;               // history/clear calls are not real usage
+    if(!byFeature[f]) byFeature[f] = {count: 0, users: new Set()};
+    byFeature[f].count++;
+    if(u) byFeature[f].users.add(u);
+    byDay[day].total++;
+    byDay[day].feats[f] = (byDay[day].feats[f] || 0) + 1;
+    if(u){
+      if(!byUser[u]) byUser[u] = {total: 0, feats: {}, last: ''};
+      byUser[u].total++;
+      byUser[u].feats[f] = (byUser[u].feats[f] || 0) + 1;
+      if(ev.created_at > byUser[u].last) byUser[u].last = ev.created_at;
+    }
+  }
+  return {byFeature, byPath, byDay, byUser};
+}
+
+function barList(rows, unitLabel){
+  if(!rows.length) return '<p style="color:var(--muted);font-size:13px;">Nothing recorded in this period.</p>';
+  const max = Math.max(...rows.map(r => r.count)) || 1;
+  return rows.map(r => `
+    <div class="bar-row">
+      <div class="bar-label">${esc(r.label)}${r.sub ? `<small>${esc(r.sub)}</small>` : ''}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.max(3, Math.round(r.count / max * 100))}%"></div></div>
+      <div class="bar-val">${r.count}</div>
+    </div>`).join('');
+}
+
+// ---------- Usage & Activity tab ----------
+async function loadAnalytics(force){
+  try{
+    await ensureActivity(force);
+    document.getElementById('an-msg').className = 'msg';
+    renderAnalytics();
+  }catch(e){ showMsg('an-msg', 'Could not load activity. Check your connection and admin key.', 'error'); }
+}
+
+function renderAnalytics(){
+  if(!ACT.data) return;
+  const range = parseInt(document.getElementById('an-range').value);
+  const start = range ? utcDay(range - 1) : '';
+  const events = ACT.data.filter(ev => ev.created_at.slice(0,10) >= start);
+  const {byFeature, byPath, byDay, byUser} = summarize(events);
+  const tracked = trackedFeatures();
+  const waecTracked = tracked.has('past_questions') || tracked.has('waec_theory_explain');
+
+  const allUsers = new Set(); Object.values(byDay).forEach(d => d.users.forEach(u => allUsers.add(u)));
+  const count = f => byFeature[f]?.count || 0;
+  const totalActions = Object.values(byFeature).reduce((n, x) => n + x.count, 0);
+  document.getElementById('an-stats').innerHTML =
+    statBox(allUsers.size, 'Active students') + statBox(totalActions, 'Total actions') +
+    statBox(count('ai_chat'), 'AI messages') + statBox(count('theory_view'), 'Theory lessons') +
+    statBox(waecTracked ? count('past_questions') + count('waec_theory_explain') : '—', waecTracked ? 'WAEC/NECO activity' : 'WAEC/NECO (not tracked yet)');
+
+  const oldest = ACT.data.length ? ACT.data[ACT.data.length - 1].created_at.slice(0,10) : '';
+  document.getElementById('an-note').textContent = ACT.truncated
+    ? `Only the latest ${ACT_LIMIT} events are loaded (back to ${oldest}). Older activity is not included.`
+    : `${ACT.data.length} events loaded.`;
+
+  // Features
+  const featRows = Object.entries(byFeature).map(([f, x]) => ({label: labelFor(f), sub: `${x.users.size} student${x.users.size === 1 ? '' : 's'}`, count: x.count}))
+    .sort((a, b) => b.count - a.count);
+  const missing = [...NEEDS_BACKEND].filter(f => !tracked.has(f) && f !== 'waec_theory_browse')
+    .map(f => labelFor(f)).join(', ');
+  document.getElementById('an-features').innerHTML = barList(featRows) +
+    (missing ? `<div class="hint">Not tracked yet (needs the backend update): ${esc(missing)}.</div>` : '');
+
+  // Endpoints
+  const pathRows = Object.entries(byPath).map(([p, n]) => ({label: p, count: n})).sort((a, b) => b.count - a.count).slice(0, 12);
+  document.getElementById('an-paths').innerHTML = barList(pathRows);
+
+  // Daily table
+  const days = Object.keys(byDay).sort().reverse();
+  document.getElementById('an-daily').innerHTML = days.length ? `
+    <table><thead><tr><th>Date</th><th>Active</th><th>AI</th><th>Theory</th><th>Past Q / WAEC</th><th>Total</th></tr></thead><tbody>` +
+    days.map(d => {
+      const x = byDay[d], fe = x.feats;
+      const pq = (fe.past_questions || 0) + (fe.waec_theory_explain || 0);
+      return `<tr><td>${esc(d)}</td><td><span class="tag">${x.users.size}</span></td><td>${fe.ai_chat || 0}</td><td>${fe.theory_view || 0}</td><td>${waecTracked ? pq : '—'}</td><td>${x.total}</td></tr>`;
+    }).join('') + '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No activity in this period.</p>';
+
+  // Top users
+  const top = Object.entries(byUser).sort((a, b) => b[1].total - a[1].total).slice(0, 10);
+  document.getElementById('an-top-users').innerHTML = top.length ? `
+    <table><thead><tr><th>Student</th><th>AI</th><th>Theory</th><th>Past Q / WAEC</th><th>Total</th><th>Last active</th><th></th></tr></thead><tbody>` +
+    top.map(([u, x]) => {
+      const pq = (x.feats.past_questions || 0) + (x.feats.waec_theory_explain || 0);
+      return `<tr><td>${esc(u)}</td><td>${x.feats.ai_chat || 0}</td><td>${x.feats.theory_view || 0}</td><td>${waecTracked ? pq : '—'}</td><td>${x.total}</td><td>${esc(new Date(x.last).toLocaleString())}</td>
+        <td><button class="btn btn-ghost btn-sm" data-user="${esc(u)}" onclick="openUser(this.dataset.user)">View</button></td></tr>`;
+    }).join('') + '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No named students in this period (some actions are logged without a username).</p>';
+
+  // Latest events
+  document.getElementById('an-recent').innerHTML = events.length ? `
+    <table><thead><tr><th>Time</th><th>Student</th><th>What</th><th>Endpoint</th></tr></thead><tbody>` +
+    events.slice(0, 25).map(ev => `<tr><td>${esc(new Date(ev.created_at).toLocaleString())}</td><td>${esc(ev.username || '—')}</td><td>${esc(labelFor(featureOf(ev)))}</td><td style="color:var(--muted);">${esc(ev.path || '')}</td></tr>`).join('') +
+    '</tbody></table>' : '<p style="color:var(--muted);font-size:13px;">No events in this period.</p>';
+}
+
+function openUser(username){
+  switchTab('users');
+  document.getElementById('usr-lookup').value = username;
+  document.getElementById('usr-app').value = 'auto';
+  lookupUser();
+}
+
+// ---------- Users tab ----------
+async function lookupUser(){
+  const username = document.getElementById('usr-lookup').value.trim();
+  const app = document.getElementById('usr-app').value;
+  const out = document.getElementById('usr-result');
+  if(!username){ showMsg('usr-msg', 'Enter a username', 'error'); return; }
+  document.getElementById('usr-msg').className = 'msg';
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+
+  const enc = encodeURIComponent(username);
+  const getUsage = async which => {
+    const path = which === 'hub' ? `/admin/monitor/usage/${enc}` : `/admin/campus/monitor/usage/${enc}`;
+    const r = await fetch(`${API}${path}`, {headers: hdrs()});
+    return r.ok ? await r.json() : null;
+  };
+  try{
+    let usage = null, which = app;
+    if(app === 'auto'){
+      usage = await getUsage('hub'); which = 'hub';
+      if(!usage){ usage = await getUsage('campus'); which = 'campus'; }
+    }else usage = await getUsage(app);
+    if(!usage){ out.innerHTML = ''; showMsg('usr-msg', 'No student with that username in the selected app', 'error'); return; }
+
+    const ar = await fetch(`${API}/admin/monitor/activity?username=${enc}&limit=2000`, {headers: hdrs()});
+    const events = ar.ok ? (await ar.json()).filter(e => e.created_at) : [];
+    try{ await ensureActivity(false); }catch(e){}
+    const tracked = trackedFeatures();
+
+    const feats = {}, days = new Set();
+    let last = '', first = '';
+    events.forEach(ev => {
+      const f = featureOf(ev);
+      if(f !== 'ai_other') feats[f] = (feats[f] || 0) + 1;
+      days.add(ev.created_at.slice(0,10));
+      if(!last || ev.created_at > last) last = ev.created_at;
+      if(!first || ev.created_at < first) first = ev.created_at;
+    });
+    const val = f => (NEEDS_BACKEND.has(f) && !tracked.has(f)) ? '<span class="tag muted">not tracked yet</span>' : `<span class="tag">${feats[f] || 0}</span>`;
+    const row = (label, v) => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;"><span>${esc(label)}</span>${v}</div>`;
+
+    let stats = statBox(days.size, 'Days active') + statBox(events.length, 'Logged actions');
+    if(which === 'hub'){
+      stats += statBox(usage.ai_messages ?? 0, 'AI messages (all time)') + statBox(usage.quiz_count ?? 0, 'Quizzes') + statBox(usage.score ?? 0, 'Score') + statBox(usage.coins ?? 0, 'Coins');
+    }else{
+      stats += statBox(usage.gst_tests_taken ?? 0, 'GST tests') + statBox(usage.course_tests_taken ?? 0, 'Course tests') + statBox(usage.is_premium ? 'Yes' : 'No', 'Premium');
+    }
+    const who = which === 'campus' ? `${esc(usage.full_name || username)} · ${esc(usage.department || '')} ${esc(usage.level || '')}` : esc(username);
+    out.innerHTML = `
+      <div style="font-weight:700;margin-bottom:10px;">${who} <span class="tag">${which === 'hub' ? 'Learning Hub' : 'AKSU Campus'}</span></div>
+      <div class="stats-grid">${stats}</div>
+      <div>
+        ${row('AI Tutor messages (logged)', val('ai_chat'))}
+        ${row('AI image questions', val('ai_vision'))}
+        ${row('Theory lessons opened', val('theory_view'))}
+        ${row('Past questions (WAEC/NECO/JAMB)', val('past_questions'))}
+        ${row('WAEC/NECO theory explanations', val('waec_theory_explain'))}
+        ${row('Quizzes submitted', val('quiz_submit'))}
+        ${row('Games played', val('game_played'))}
+        ${row('First seen', `<span class="tag">${first ? esc(new Date(first).toLocaleDateString()) : '—'}</span>`)}
+        ${row('Last active', `<span class="tag">${last ? esc(new Date(last).toLocaleString()) : '—'}</span>`)}
+      </div>
+      <div class="hint">Counts come from the activity log (latest 2000 actions for this student). Other actions: ${
+        Object.entries(feats).filter(([f]) => !['ai_chat','ai_vision','theory_view','past_questions','waec_theory_explain','quiz_submit','game_played'].includes(f))
+          .map(([f, n]) => `${esc(labelFor(f))} ${n}`).join(', ') || 'none'}.</div>
+      <div style="margin-top:12px;"><button class="btn btn-ghost btn-sm" data-user="${esc(username)}" data-app="${which}" onclick="prepMessage(this.dataset.user, this.dataset.app)">Message this student</button></div>`;
+  }catch(e){ out.innerHTML = ''; showMsg('usr-msg', 'Connection error', 'error'); }
+}
+
+const ROSTER = {rows: [], app: 'campus', loaded: false};
+
+async function loadRoster(){
+  const app = document.getElementById('roster-app').value;
+  const table = document.getElementById('roster-table');
+  document.getElementById('roster-msg').className = 'msg';
+  table.innerHTML = '<tbody><tr><td style="color:var(--muted);">Loading...</td></tr></tbody>';
+  try{
+    const r = await fetch(`${API}${app === 'hub' ? '/admin/hub/users' : '/admin/campus/users'}?limit=500`, {headers: hdrs()});
+    if(r.status === 404 || r.status === 405){
+      ROSTER.rows = []; ROSTER.app = app; ROSTER.loaded = true;
+      table.innerHTML = '';
+      showMsg('roster-msg', "The backend doesn't have a Learning Hub user list yet. Add backend update #3, or look students up by username above.", 'error');
+      return;
+    }
+    const d = await r.json();
+    ROSTER.rows = Array.isArray(d) ? d : []; ROSTER.app = app; ROSTER.loaded = true;
+    renderRoster();
+  }catch(e){ table.innerHTML = ''; showMsg('roster-msg', 'Connection error', 'error'); }
+}
+
+function renderRoster(){
+  const q = document.getElementById('roster-search').value.trim().toLowerCase();
+  const rows = ROSTER.rows.filter(u => !q || [u.username, u.full_name, u.department, u.email].some(v => String(v || '').toLowerCase().includes(q)));
+  const table = document.getElementById('roster-table');
+  if(!rows.length){ table.innerHTML = '<tbody><tr><td style="color:var(--muted);">No students found</td></tr></tbody>'; return; }
+  const campus = ROSTER.app === 'campus';
+  const head = campus ? '<th>Username</th><th>Name</th><th>Department</th><th>Level</th><th>Premium</th><th></th>'
+                      : '<th>Username</th><th>Score</th><th>Streak</th><th>Last studied</th><th>Premium</th><th></th>';
+  table.innerHTML = `<thead><tr>${head}</tr></thead><tbody>` + rows.map(u => {
+    const cells = campus
+      ? `<td>${esc(u.username)}</td><td>${esc(u.full_name)}</td><td>${esc(u.department)}</td><td>${esc(u.level)}</td>`
+      : `<td>${esc(u.username)}</td><td>${esc(u.score)}</td><td>${esc(u.streak)}</td><td>${esc(u.last_study_date || '—')}</td>`;
+    return `<tr>${cells}<td>${u.is_premium ? '<span class="tag">Premium</span>' : '—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" data-user="${esc(u.username)}" data-app="${ROSTER.app}" onclick="openRosterUser(this.dataset.user, this.dataset.app)">Usage</button>
+        <button class="btn btn-ghost btn-sm" data-user="${esc(u.username)}" data-app="${ROSTER.app}" onclick="prepMessage(this.dataset.user, this.dataset.app)">Message</button>
+      </td></tr>`;
+  }).join('') + '</tbody>';
+}
+
+function openRosterUser(username, app){
+  document.getElementById('usr-lookup').value = username;
+  document.getElementById('usr-app').value = app;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  lookupUser();
+}
+
+// ---------- Message students ----------
+function prepMessage(username, app){
+  switchTab('messages');
+  document.getElementById('msgs-app').value = app;
+  document.getElementById('msgs-target').value = 'one';
+  document.getElementById('msgs-user-wrap').classList.remove('hidden');
+  document.getElementById('msgs-user').value = username;
+  document.getElementById('msgs-text').focus();
+}
+
+async function sendMessage(){
+  const app = document.getElementById('msgs-app').value;
+  const toOne = document.getElementById('msgs-target').value === 'one';
+  const username = document.getElementById('msgs-user').value.trim();
+  const message = document.getElementById('msgs-text').value.trim();
+  if(!message){ showMsg('msgs-msg', 'Write a message first', 'error'); return; }
+  if(toOne && !username){ showMsg('msgs-msg', 'Enter the student\'s username', 'error'); return; }
+  if(!toOne && !confirm(`Send this message to EVERY ${app === 'campus' ? 'AKSU Campus' : 'Learning Hub'} student?`)) return;
+  try{
+    const r = await fetch(`${API}${app === 'campus' ? '/admin/campus/notify' : '/admin/hub/notify'}`, {
+      method:'POST', headers: hdrs(), body: JSON.stringify({username: toOne ? username : null, message})
+    });
+    const d = await safeJson(r);
+    if(r.ok){
+      showMsg('msgs-msg', toOne ? `Message sent to ${username}!` : (d.sent_to ? `Message sent to ${d.sent_to} students!` : 'Broadcast sent!'), 'success');
+      document.getElementById('msgs-text').value = '';
+    }else if(r.status === 404 && app === 'hub' && !d.detail?.toLowerCase().includes('user')){
+      showMsg('msgs-msg', "The backend can't message Learning Hub students yet. Add backend update #2 and redeploy.", 'error');
+    }else if(r.status === 405){
+      showMsg('msgs-msg', "The backend can't message Learning Hub students yet. Add backend update #2 and redeploy.", 'error');
+    }else{
+      showMsg('msgs-msg', d.detail || 'Could not send message', 'error');
+    }
+  }catch(e){ showMsg('msgs-msg', 'Connection error', 'error'); }
+}
+
+// ---------- Games (Fun & Brain Challenge) ----------
+const GM_BUILTIN = [
+  {id:'trivia',   name:'Trivia'},
+  {id:'science',  name:'Science Sort'},
+  {id:'word',     name:'Word Builder'},
+  {id:'sentence', name:'Build the Sentence'},
+  {id:'puzzle',   name:'Word Puzzles'}
+];
+const GM_RESERVED = ['trivia','science','word','sentence','puzzle','maths','mathpath','math','memory','pattern','flash','hunt','crossword'];
+const GM_TIERS = ['Easy','Medium','Hard'];
+const GM_TARGET = 40;
+const GM = {defs:[], stats:[], editing:null, offset:0, limit:20, total:0, items:[]};
+
+async function gmApi(path, method, body){
+  try{
+    const opt = {method: method || 'GET', headers: hdrs()};
+    if(body !== undefined) opt.body = JSON.stringify(body);
+    const r = await fetch(`${API}${path}`, opt);
+    return {ok: r.ok, status: r.status, data: await safeJson(r)};
+  }catch(e){
+    return {ok:false, status:0, data:{detail:'Connection error'}};
+  }
+}
+function gmErr(res, fallback){
+  if(res.status === 401) return 'Admin key rejected - log out and log in again';
+  const d = res.data && res.data.detail;
+  if(typeof d === 'string') return d;
+  if(Array.isArray(d)) return d.map(x => x.msg).join('; ');
+  return fallback;
+}
+function gmVal(id){ const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+function gmHideMsg(id){ const el = document.getElementById(id); if(el){ el.className = 'msg'; el.textContent = ''; } }
+function gmCsv(s){ return String(s || '').split(',').map(x => x.trim()).filter(Boolean); }
+function gmUniq(arr){ return Array.from(new Set(arr)); }
+function gmKind(gameId){ return GM_BUILTIN.some(g => g.id === gameId) ? gameId : 'trivia'; }
+function gmName(gameId){
+  const b = GM_BUILTIN.find(g => g.id === gameId); if(b) return b.name;
+  const d = GM.defs.find(x => x.slug === gameId); return d ? d.name : gameId;
+}
+function gmAllGames(){
+  return GM_BUILTIN.map(g => ({id:g.id, name:g.name}))
+    .concat(GM.defs.map(d => ({id:d.slug, name:d.name, disabled:!d.enabled})));
+}
+
+async function gmLoadAll(){
+  const [defs, stats] = await Promise.all([gmApi('/admin/games/defs'), gmApi('/admin/games/stats')]);
+  if(defs.ok && Array.isArray(defs.data)) GM.defs = defs.data;
+  else showMsg('gm-def-msg', gmErr(defs, 'Could not load your custom games'), 'error');
+  GM.stats = (stats.ok && Array.isArray(stats.data)) ? stats.data : [];
+  gmFillSelects();
+  gmRenderDefs();
+  gmRenderStats();
+  gmRenderForm();
+  gmBrowse(true);
+}
+
+async function gmRefreshStats(){
+  const res = await gmApi('/admin/games/stats');
+  GM.stats = (res.ok && Array.isArray(res.data)) ? res.data : GM.stats;
+  gmRenderStats();
+}
+
+function gmFillSelects(){
+  const add = document.getElementById('gm-game');
+  const cur = add.value;
+  const live = GM_BUILTIN.map(g => ({id:g.id, label:g.name}))
+    .concat(GM.defs.filter(d => d.enabled).map(d => ({id:d.slug, label:`${d.icon || ''} ${d.name}`.trim()})));
+  add.innerHTML = live.map(o => `<option value="${esc(o.id)}">${esc(o.label)}</option>`).join('');
+  if(live.some(o => o.id === cur)) add.value = cur;
+
+  const f = document.getElementById('gm-f-game');
+  const curF = f.value;
+  f.innerHTML = '<option value="">All games</option>' + gmAllGames().map(g =>
+    `<option value="${esc(g.id)}">${esc(g.name)}${g.disabled ? ' (hidden)' : ''}</option>`).join('');
+  f.value = curF;
+}
+
+function gmRenderStats(){
+  const cnt = {};
+  GM.stats.forEach(s => { const k = `${s.game}|${s.level}|${s.tier}`; cnt[k] = (cnt[k] || 0) + Number(s.count || 0); });
+  const cell = (g, l, t) => {
+    const n = cnt[`${g}|${l}|${t}`] || 0;
+    const col = n === 0 ? 'var(--danger)' : (n < GM_TARGET ? 'var(--gold)' : 'var(--green)');
+    return `<td style="color:${col};font-weight:700;text-align:center;">${n}</td>`;
+  };
+  const rows = gmAllGames().map(g =>
+    `<tr><td>${esc(g.name)}${g.disabled ? ' <span class="tag muted">hidden</span>' : ''}</td>` +
+    ['Junior','Senior'].map(l => [0,1,2].map(t => cell(g.id, l, t)).join('')).join('') + '</tr>');
+  document.getElementById('gm-stats').innerHTML =
+    `<table><thead><tr><th rowspan="2">Game</th><th colspan="3" style="text-align:center;">Junior</th><th colspan="3" style="text-align:center;">Senior</th></tr>` +
+    `<tr>${[0,1].map(() => GM_TIERS.map(t => `<th style="text-align:center;">${t}</th>`).join('')).join('')}</tr></thead>` +
+    `<tbody>${rows.join('')}</tbody></table>`;
+}
+
+// ----- create / edit a game -----
+function gmRenderDefs(){
+  const box = document.getElementById('gm-defs');
+  if(!GM.defs.length){
+    box.innerHTML = '<p style="color:var(--muted);font-size:13px;">No custom games yet. Create your first one above.</p>';
+    return;
+  }
+  box.innerHTML = GM.defs.map((d, i) => `
+    <div class="subj-row">
+      <div class="subj-head">
+        <span><b>${esc(d.icon || '🎯')} ${esc(d.name)}</b> <span class="tag muted">${esc(d.slug)}</span>
+          <span class="tag ${d.enabled ? '' : 'warn'}">${d.enabled ? 'live' : 'hidden'}</span></span>
+        <span class="subj-actions">
+          <button class="btn btn-primary btn-sm" onclick="gmAddFor(${i})">Add questions</button>
+          <button class="btn btn-ghost btn-sm" onclick="gmEditDef(${i})">Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="gmToggleDef(${i})">${d.enabled ? 'Hide' : 'Make live'}</button>
+        </span>
+      </div>
+      <div class="hint">${esc(d.blurb || '')}</div>
+    </div>`).join('');
+}
+
+function gmClearDef(){
+  GM.editing = null;
+  ['gm-slug','gm-name','gm-icon','gm-blurb','gm-topic'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('gm-slug').disabled = false;
+  document.getElementById('gm-c1').value = '#6366f1';
+  document.getElementById('gm-c2').value = '#818cf8';
+  document.getElementById('gm-enabled').value = 'true';
+  document.getElementById('gm-def-title').textContent = 'Create a new game';
+  document.getElementById('gm-def-btn').textContent = 'Create game';
+}
+
+function gmEditDef(i){
+  const d = GM.defs[i]; if(!d) return;
+  gmHideMsg('gm-def-msg');
+  GM.editing = d.slug;
+  document.getElementById('gm-slug').value = d.slug;
+  document.getElementById('gm-slug').disabled = true;
+  document.getElementById('gm-name').value = d.name || '';
+  document.getElementById('gm-icon').value = d.icon || '';
+  document.getElementById('gm-blurb').value = d.blurb || '';
+  document.getElementById('gm-topic').value = d.topic || '';
+  const hex = /^#[0-9a-fA-F]{6}$/;
+  const g = String(d.grad || '').split(',').map(x => x.trim());
+  document.getElementById('gm-c1').value = hex.test(g[0]) ? g[0] : '#6366f1';
+  document.getElementById('gm-c2').value = hex.test(g[1]) ? g[1] : '#818cf8';
+  document.getElementById('gm-enabled').value = d.enabled ? 'true' : 'false';
+  document.getElementById('gm-def-title').textContent = `Edit game: ${d.name}`;
+  document.getElementById('gm-def-btn').textContent = 'Save changes';
+  document.getElementById('gm-def-title').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function gmSaveDef(){
+  const slug = gmVal('gm-slug').toLowerCase();
+  const name = gmVal('gm-name');
+  if(!/^[a-z][a-z0-9_]{2,20}$/.test(slug)){
+    showMsg('gm-def-msg', 'Game ID must be 3-21 characters: lowercase letters, numbers or underscore, starting with a letter', 'error'); return;
+  }
+  if(!GM.editing && GM_RESERVED.includes(slug)){
+    showMsg('gm-def-msg', 'That ID belongs to a built-in game - pick a different one', 'error'); return;
+  }
+  if(!name){ showMsg('gm-def-msg', 'Give the game a name', 'error'); return; }
+  if(!GM.editing && GM.defs.some(d => d.slug === slug) && !confirm(`A game with the ID "${slug}" already exists. Overwrite it?`)) return;
+  const payload = {
+    slug, name,
+    icon: gmVal('gm-icon') || '🎯',
+    blurb: gmVal('gm-blurb'),
+    grad: `${gmVal('gm-c1')},${gmVal('gm-c2')}`,
+    topic: gmVal('gm-topic'),
+    enabled: gmVal('gm-enabled') === 'true'
+  };
+  const res = await gmApi('/admin/games/defs', 'POST', payload);
+  if(!res.ok){ showMsg('gm-def-msg', gmErr(res, 'Could not save the game'), 'error'); return; }
+  const wasEditing = !!GM.editing;
+  const defs = await gmApi('/admin/games/defs');
+  if(defs.ok && Array.isArray(defs.data)) GM.defs = defs.data;
+  gmClearDef();
+  gmFillSelects();
+  gmRenderDefs();
+  gmRenderStats();
+  if(payload.enabled){ document.getElementById('gm-game').value = slug; }
+  gmRenderForm();
+  showMsg('gm-def-msg', wasEditing ? 'Game updated!' : (payload.enabled ? 'Game created! Now add questions to it below.' : 'Game created (hidden). Make it live before adding questions.'), 'success');
+}
+
+async function gmToggleDef(i){
+  const d = GM.defs[i]; if(!d) return;
+  const res = await gmApi(`/admin/games/defs/${encodeURIComponent(d.slug)}/enabled`, 'POST', {active: !d.enabled});
+  if(!res.ok){ showMsg('gm-def-msg', gmErr(res, 'Could not change the game status'), 'error'); return; }
+  d.enabled = !d.enabled;
+  gmFillSelects();
+  gmRenderDefs();
+  gmRenderStats();
+  gmRenderForm();
+  showMsg('gm-def-msg', d.enabled ? `${d.name} is now live` : `${d.name} is now hidden from players`, 'success');
+}
+
+function gmAddFor(i){
+  const d = GM.defs[i]; if(!d) return;
+  if(!d.enabled){ showMsg('gm-def-msg', 'Make this game live first, then you can add questions', 'error'); return; }
+  document.getElementById('gm-game').value = d.slug;
+  gmRenderForm();
+  gmHideMsg('gm-add-msg');
+  document.getElementById('gm-game').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// ----- add questions: form changes with the game type -----
+function gmField(id, label, ph, area){
+  return `<div class="form-group"><label>${label}</label>` +
+    (area ? `<textarea id="${id}" placeholder="${esc(ph)}"></textarea>` : `<input id="${id}" placeholder="${esc(ph)}">`) + '</div>';
+}
+function gmMcFields(){
+  return gmField('gm-q', 'Question', 'e.g. Who was the first President of Nigeria?', true) +
+    gmField('gm-a', 'Correct answer', 'e.g. Nnamdi Azikiwe') +
+    '<div class="form-row">' + gmField('gm-w1', 'Wrong option 1', '') + gmField('gm-w2', 'Wrong option 2', '') + '</div>' +
+    gmField('gm-w3', 'Wrong option 3 (optional)', '') +
+    gmField('gm-why', 'Explanation shown after answering (optional)', '', true);
+}
+const GM_EXAMPLES = {
+  trivia:   [{tier:0, q:'What is the capital of Nigeria?', a:'Abuja', w:['Lagos','Kano','Ibadan']}],
+  science:  [{tier:0, topic:'States of matter', cats:['Solid','Liquid','Gas'], item:'Ice', a:'Solid'}],
+  word:     [{tier:0, w:'school', hint:'A place where students learn'}],
+  sentence: [{tier:0, s:'The boy is reading a book.', d:['went','very'], f:{w:'reading', o:['read','reads','readed']}}],
+  puzzle:   [{tier:0, type:'syn', q:'Choose the word closest in meaning to HAPPY:', a:'joyful', w:['angry','tired','confused']}]
+};
+
+function gmRenderForm(){
+  const game = gmVal('gm-game');
+  const kind = gmKind(game);
+  let html = '';
+  if(kind === 'trivia'){
+    html = gmMcFields();
+  }else if(kind === 'puzzle'){
+    html = '<div class="form-group"><label>Puzzle type</label><select id="gm-type">' +
+      '<option value="spell">Spelling (pick the correct spelling)</option>' +
+      '<option value="odd">Odd one out</option>' +
+      '<option value="syn">Synonym (same meaning)</option>' +
+      '<option value="ant">Antonym (opposite)</option>' +
+      '<option value="code">Cipher / code</option>' +
+      '<option value="anagram">Anagram</option></select></div>' + gmMcFields();
+  }else if(kind === 'science'){
+    html = gmField('gm-sci-topic', 'Sorting topic', 'e.g. States of matter') +
+      gmField('gm-cats', 'Categories (2 to 5, separated by commas)', 'e.g. Solid, Liquid, Gas') +
+      gmField('gm-item', 'Item to sort', 'e.g. Ice') +
+      gmField('gm-a', 'Correct category (must be one of the categories above)', 'e.g. Solid') +
+      gmField('gm-why', 'Explanation (optional)', '', true);
+  }else if(kind === 'word'){
+    html = gmField('gm-w', 'Word to spell (letters only, 3 to 16)', 'e.g. school') +
+      gmField('gm-hint', 'Hint - the meaning, without using the word itself', 'e.g. A place where students learn', true);
+  }else if(kind === 'sentence'){
+    html = gmField('gm-s', 'Sentence (3 to 18 words, ends with . ? or !)', 'e.g. The boy is reading a book.') +
+      gmField('gm-d', 'Extra wrong words, up to 3 (optional, commas)', 'e.g. went, very') +
+      '<div class="form-row">' + gmField('gm-fw', 'Fill-in-the-blank word (optional)', 'e.g. reading') +
+      gmField('gm-fo', 'Wrong options for it, 2 to 3 (commas)', 'e.g. read, reads, readed') + '</div>' +
+      gmField('gm-hint', 'Pidgin version of the sentence (optional)', '', true) +
+      gmField('gm-why', 'Explanation (optional)', '', true);
+  }
+  document.getElementById('gm-form').innerHTML = html;
+  const ex = JSON.stringify(GM_EXAMPLES[kind] || GM_EXAMPLES.trivia, null, 1);
+  document.getElementById('gm-bulk-hint').innerHTML =
+    '<b>Format</b> (a list of questions; "tier" 0 = easy, 1 = medium, 2 = hard is optional and defaults to the difficulty chosen above; an optional "level" of Junior or Senior overrides the level above):' +
+    `<code style="display:block;white-space:pre-wrap;margin-top:6px;padding:8px;">${esc(ex)}</code>`;
+}
+
+// Checks one question the same way the server does, so mistakes show up before saving
+function gmBuild(kind){
+  const why = gmVal('gm-why');
+  let out;
+  if(kind === 'trivia' || kind === 'puzzle'){
+    const q = gmVal('gm-q'), a = gmVal('gm-a');
+    if(!q || !a) return {error: 'Enter the question and the correct answer'};
+    const wrongs = gmUniq(['gm-w1','gm-w2','gm-w3'].map(gmVal).filter(Boolean))
+      .filter(x => x.toLowerCase() !== a.toLowerCase());
+    if(wrongs.length < 2) return {error: 'Enter at least 2 different wrong options (they must not match the correct answer)'};
+    if(q.length > 240) return {error: 'The question is too long (max 240 characters)'};
+    if(a.length > 90 || wrongs.some(x => x.length > 90)) return {error: 'Answers and options must be 90 characters or less'};
+    out = {q, a, w: wrongs.slice(0, 3)};
+    if(kind === 'puzzle') out.type = gmVal('gm-type');
+  }else if(kind === 'science'){
+    const topic = gmVal('gm-sci-topic'), item = gmVal('gm-item');
+    let a = gmVal('gm-a');
+    const cats = gmUniq(gmCsv(gmVal('gm-cats')));
+    if(!topic || !item || !a) return {error: 'Enter the topic, the categories, the item and the correct category'};
+    if(cats.length < 2 || cats.length > 5) return {error: 'Enter between 2 and 5 categories, separated by commas'};
+    const match = cats.find(c => c.toLowerCase() === a.toLowerCase());
+    if(!match) return {error: 'The correct category must be one of the categories you listed'};
+    a = match;
+    if(topic.length > 60 || item.length > 50 || cats.some(c => c.length > 40)) return {error: 'Topic max 60, item max 50, each category max 40 characters'};
+    out = {topic, cats, item, a};
+  }else if(kind === 'word'){
+    const w = gmVal('gm-w'), hint = gmVal('gm-hint');
+    if(!/^[A-Za-z]{3,16}$/.test(w)) return {error: 'The word must be 3 to 16 letters with no spaces, numbers or symbols'};
+    if(!hint) return {error: 'Add a hint (the meaning of the word)'};
+    if(hint.toLowerCase().includes(w.toLowerCase())) return {error: 'The hint must not contain the word itself'};
+    if(hint.length > 140) return {error: 'The hint is too long (max 140 characters)'};
+    out = {w, hint};
+  }else if(kind === 'sentence'){
+    const s = gmVal('gm-s');
+    const words = s.replace(/[.?!]+$/, '').split(/\s+/).filter(Boolean);
+    if(!/[.?!]$/.test(s)) return {error: 'The sentence must end with . ? or !'};
+    if(words.length < 3 || words.length > 18) return {error: 'The sentence must have between 3 and 18 words'};
+    if(s.length > 160) return {error: 'The sentence is too long (max 160 characters)'};
+    out = {s};
+    const hint = gmVal('gm-hint');
+    if(hint) out.hint = hint.slice(0, 160);
+    const dRaw = gmCsv(gmVal('gm-d')).map(x => x.toLowerCase());
+    if(dRaw.length){
+      const inSentence = new Set(words.map(x => x.replace(/[,;:.?!]/g, '').toLowerCase()));
+      const bad = dRaw.find(x => !/^[a-z']{2,15}$/.test(x) || inSentence.has(x));
+      if(bad) return {error: `Extra word "${bad}" is not allowed - use plain lowercase words that are NOT in the sentence`};
+      out.d = gmUniq(dRaw).slice(0, 3);
+    }
+    const fw = gmVal('gm-fw'), fo = gmCsv(gmVal('gm-fo'));
+    if(fw || fo.length){
+      if(!fw || !fo.length) return {error: 'For a fill-in-the-blank, fill in BOTH the word and its wrong options (or leave both empty)'};
+      const m = s.match(new RegExp('\\b' + fw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i'));
+      if(!m) return {error: `The word "${fw}" does not appear in the sentence`};
+      const opts = gmUniq(fo).filter(x => x.toLowerCase() !== fw.toLowerCase());
+      if(opts.length < 2) return {error: 'Give at least 2 different wrong options for the blank'};
+      out.f = {w: m[0], o: opts.slice(0, 3)};
+    }
+  }else{
+    return {error: 'Unknown game type'};
+  }
+  if(why) out.why = why.slice(0, 240);
+  return {payload: out};
+}
+
+async function gmPostItems(game, items){
+  return gmApi('/admin/games/items', 'POST', {game, items});
+}
+
+async function gmSubmitOne(){
+  const game = gmVal('gm-game');
+  if(!game){ showMsg('gm-add-msg', 'Choose a game first', 'error'); return; }
+  const built = gmBuild(gmKind(game));
+  if(built.error){ showMsg('gm-add-msg', built.error, 'error'); return; }
+  const res = await gmPostItems(game, [{level: gmVal('gm-level'), tier: parseInt(gmVal('gm-tier'), 10) || 0, payload: built.payload}]);
+  if(!res.ok){ showMsg('gm-add-msg', gmErr(res, 'Could not add the question'), 'error'); return; }
+  if(res.data.added > 0){
+    showMsg('gm-add-msg', 'Question added!', 'success');
+    document.querySelectorAll('#gm-form input, #gm-form textarea').forEach(el => { el.value = ''; });
+    gmRefreshStats();
+    gmBrowse(true);
+  }else{
+    showMsg('gm-add-msg', 'Not added - this question already exists for this game and level (or it failed the server checks)', 'error');
+  }
+}
+
+function gmTierFrom(v, fallback){
+  if(typeof v === 'number' && [0,1,2].includes(v)) return v;
+  if(typeof v === 'string'){
+    const t = v.trim().toLowerCase();
+    if(['0','1','2'].includes(t)) return parseInt(t, 10);
+    const i = ['easy','medium','hard'].indexOf(t);
+    if(i >= 0) return i;
+  }
+  return fallback;
+}
+
+async function gmSubmitBulk(){
+  const game = gmVal('gm-game');
+  if(!game){ showMsg('gm-bulk-msg', 'Choose a game first', 'error'); return; }
+  let arr;
+  try{
+    arr = JSON.parse(document.getElementById('gm-bulk-json').value);
+    if(!Array.isArray(arr) || !arr.length) throw new Error();
+    if(!arr.every(x => x && typeof x === 'object' && !Array.isArray(x))) throw new Error();
+  }catch(e){
+    showMsg('gm-bulk-msg', 'Invalid JSON - it must be a list like [ {...}, {...} ] of question objects', 'error'); return;
+  }
+  const defLevel = gmVal('gm-level'), defTier = parseInt(gmVal('gm-tier'), 10) || 0;
+  const items = arr.map(o => ({
+    level: ['Junior','Senior'].includes(o.level) ? o.level : defLevel,
+    tier: gmTierFrom(o.tier, defTier),
+    payload: o
+  }));
+  const res = await gmPostItems(game, items);
+  if(!res.ok){ showMsg('gm-bulk-msg', gmErr(res, 'Could not add the questions'), 'error'); return; }
+  const {added, skipped} = res.data;
+  if(added > 0){
+    showMsg('gm-bulk-msg', `${added} added${skipped ? `, ${skipped} skipped (duplicates or invalid)` : ''}`, 'success');
+    document.getElementById('gm-bulk-json').value = '';
+    gmRefreshStats();
+    gmBrowse(true);
+  }else{
+    showMsg('gm-bulk-msg', `Nothing was added - all ${skipped} were duplicates or invalid. Check the format shown above.`, 'error');
+  }
+}
+
+async function gmGenerate(){
+  const game = gmVal('gm-game'), level = gmVal('gm-level'), rounds = parseInt(gmVal('gm-rounds'), 10) || 1;
+  if(!game){ showMsg('gm-gen-msg', 'Choose a game first', 'error'); return; }
+  const btn = document.getElementById('gm-gen-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  showMsg('gm-gen-msg', `Asking the AI for ${gmName(game)} (${level}) questions - this can take up to a minute. Please keep this page open.`, 'success');
+  const res = await gmApi('/admin/games/generate', 'POST', {game, level, rounds});
+  btn.disabled = false; btn.textContent = 'Generate with AI';
+  if(!res.ok){ showMsg('gm-gen-msg', gmErr(res, 'AI generation failed - try again in a moment'), 'error'); return; }
+  const {added, skipped} = res.data;
+  if(added > 0){
+    showMsg('gm-gen-msg', `${added} new questions added${skipped ? ` (${skipped} duplicates skipped)` : ''}`, 'success');
+    gmRefreshStats();
+    gmBrowse(true);
+  }else{
+    showMsg('gm-gen-msg', 'The AI did not add anything this time (busy or all duplicates). Try again shortly.', 'error');
+  }
+}
+
+// ----- browse & manage -----
+function gmPreview(game, p){
+  const k = gmKind(game);
+  p = p || {};
+  let t = '';
+  if(k === 'trivia') t = `${p.q || ''} → ${p.a || ''}`;
+  else if(k === 'science') t = `[${p.topic || ''}] ${p.item || ''} → ${p.a || ''}`;
+  else if(k === 'word') t = `${p.w || ''} - ${p.hint || ''}`;
+  else if(k === 'sentence') t = p.s || '';
+  else if(k === 'puzzle') t = `(${p.type || ''}) ${p.q || ''} → ${p.a || ''}`;
+  return t.length > 110 ? t.slice(0, 107) + '...' : t;
+}
+
+async function gmBrowse(reset){
+  if(reset) GM.offset = 0;
+  const qs = new URLSearchParams({limit: GM.limit, offset: GM.offset});
+  [['game','gm-f-game'],['level','gm-f-level'],['source','gm-f-source'],['active','gm-f-active']].forEach(([k, id]) => {
+    const v = gmVal(id); if(v) qs.set(k, v);
+  });
+  const body = document.getElementById('gm-items');
+  const res = await gmApi('/admin/games/items?' + qs.toString());
+  if(!res.ok){
+    body.innerHTML = `<tr><td colspan="8" style="color:var(--danger);">${esc(gmErr(res, 'Could not load questions'))}</td></tr>`;
+    return;
+  }
+  gmHideMsg('gm-list-msg');
+  GM.items = res.data.items || [];
+  GM.total = res.data.total || 0;
+  if(!GM.items.length){
+    body.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">No questions found</td></tr>';
+  }else{
+    body.innerHTML = GM.items.map(it => `
+      <tr>
+        <td>${Number(it.id)}</td>
+        <td>${esc(gmName(it.game))}</td>
+        <td>${esc(it.level)}</td>
+        <td>${esc(GM_TIERS[it.tier] || it.tier)}</td>
+        <td>${esc(gmPreview(it.game, it.payload))}</td>
+        <td><span class="tag muted">${esc(it.source || '')}</span></td>
+        <td><span class="tag ${it.active ? '' : 'warn'}">${it.active ? 'active' : 'hidden'}</span></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="gmToggleItem(${Number(it.id)}, ${it.active ? 'false' : 'true'})">${it.active ? 'Hide' : 'Show'}</button>
+          <button class="btn btn-danger btn-sm" onclick="gmDeleteItem(${Number(it.id)})">Delete</button>
+        </td>
+      </tr>`).join('');
+  }
+  const from = GM.total ? GM.offset + 1 : 0, to = GM.offset + GM.items.length;
+  document.getElementById('gm-page-info').textContent = `Showing ${from}-${to} of ${GM.total}`;
+  document.getElementById('gm-prev').disabled = GM.offset <= 0;
+  document.getElementById('gm-next').disabled = GM.offset + GM.limit >= GM.total;
+}
+
+function gmPage(dir){
+  GM.offset = Math.max(0, GM.offset + dir * GM.limit);
+  gmBrowse(false);
+}
+
+async function gmToggleItem(id, makeActive){
+  const res = await gmApi(`/admin/games/items/${id}/active`, 'POST', {active: makeActive});
+  if(!res.ok){ showMsg('gm-list-msg', gmErr(res, 'Could not update the question'), 'error'); return; }
+  gmRefreshStats();
+  gmBrowse(false);
+}
+
+async function gmDeleteItem(id){
+  if(!confirm('Delete this question permanently? (Use Hide if you only want it out of play for now.)')) return;
+  const res = await gmApi(`/admin/games/items/${id}`, 'DELETE');
+  if(!res.ok){ showMsg('gm-list-msg', gmErr(res, 'Could not delete the question'), 'error'); return; }
+  if(GM.items.length === 1 && GM.offset > 0) GM.offset = Math.max(0, GM.offset - GM.limit);
+  gmRefreshStats();
+  gmBrowse(false);
+}
+
+// ---------- Auto-login if key already saved ----------
+window.addEventListener('load', () => {
+  if(ADMIN_KEY){
+    document.getElementById('admin-key-input').value = ADMIN_KEY;
+    doLogin();
+  }
+});
+
+// ============================================================
+// v3 ADDITIONS: Greetings, Hub Monitor, Blog, Live Class
+// ============================================================
+const HX = {
+  tpl: [], features: {}, usersPage: 1, usersPages: 1,
+  blog: {posts: [], editing: null, cover: null},
+  lc: {room: null}
+};
+Object.assign(FEATURE_LABELS, {
+  waec_theory:'WAEC/NECO theory', past_questions:'Past questions (objective)',
+  quiz_start:'Quizzes started', learn_topic:'Topics learned (AI lessons)', lesson_started:'Lessons started',
+  game_started:'Games started', daily_challenge_submit:'Daily challenges', study_logged:'Study sessions logged',
+  ai_study_plan:'AI study plans', ai_check_answer:'AI answer checks', liveclass_message:'Live class messages'
+});
+const HX_FEATURE_NAMES = {
+  waec_theory:'WAEC / NECO theory questions', past_questions:'Past questions (objective)', quiz:'Quizzes',
+  theory_lessons:'Theory lessons', ai_tutor:'AI Tutor & OX-BridgeGPT', games:'Games', lessons:'Lessons',
+  daily_challenge:'Daily challenge', study_log:'Study log', live_class:'Live class', web_search:'Web search',
+  login:'Logins & signups', payments:'Payments'
+};
+
+async function hxApi(path, method, body){
+  try{
+    const r = await fetch(`${API}${path}`, {method: method || 'GET', headers: hdrs(), body: body ? JSON.stringify(body) : undefined});
+    const d = await safeJson(r);
+    return {ok: r.ok, status: r.status, data: d};
+  }catch(e){ return {ok:false, status:0, data:{detail:'Connection error. Check your internet.'}}; }
+}
+function hxErr(res){
+  if(res.status === 404 && !res.data.detail) return 'The backend does not have this yet. Deploy the latest main.py first.';
+  if(res.status === 401) return 'Admin key rejected. Log out and enter it again.';
+  const d = res.data && res.data.detail;
+  return typeof d === 'string' ? d : (res.status === 0 ? 'Connection error. Check your internet.' : 'Something went wrong');
+}
+function hxWhen(iso){ if(!iso) return '—'; const d = new Date(iso); return isNaN(d) ? esc(iso) : d.toLocaleString([], {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}); }
+function hxTable(head, rows){
+  if(!rows.length) return '<p style="color:var(--muted);font-size:13px;">Nothing yet</p>';
+  return '<table><thead><tr>' + head.map(h => `<th>${esc(h)}</th>`).join('') + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+}
+
+// ---------- Greetings & announcements ----------
+async function hxMsgInit(){
+  if(!HX.tpl.length){
+    const r = await hxApi('/admin/messages/templates');
+    if(r.ok){
+      HX.tpl = r.data.templates || [];
+      const sel = document.getElementById('hx-msg-tpl');
+      sel.innerHTML = '<option value="">(write my own)</option>' + HX.tpl.map((t, i) => `<option value="${i}">${esc(t.title)}${t.suggested_date ? ' — ' + esc(t.suggested_date) : ''}</option>`).join('');
+    }
+  }
+  hxMsgHistory();
+}
+function hxMsgUseTemplate(){
+  const i = document.getElementById('hx-msg-tpl').value;
+  if(i === '') return;
+  const t = HX.tpl[+i]; if(!t) return;
+  document.getElementById('hx-msg-kind').value = t.kind;
+  document.getElementById('hx-msg-title').value = t.title;
+  document.getElementById('hx-msg-body').value = t.body;
+}
+async function hxMsgSend(){
+  const title = document.getElementById('hx-msg-title').value.trim();
+  const body = document.getElementById('hx-msg-body').value.trim();
+  const toOne = document.getElementById('hx-msg-target').value === 'one';
+  const username = document.getElementById('hx-msg-user').value.trim();
+  const sched = document.getElementById('hx-msg-sched').value;
+  const exp = document.getElementById('hx-msg-exp').value;
+  if(!title || !body){ showMsg('hx-msg-msg', 'Write a title and a message first', 'error'); return; }
+  if(toOne && !username){ showMsg('hx-msg-msg', "Enter the student's username", 'error'); return; }
+  if(!toOne && !confirm(sched ? 'Schedule this message for EVERY Learning Hub student?' : 'Send this message to EVERY Learning Hub student now?')) return;
+  const btn = document.getElementById('hx-msg-send'); btn.disabled = true;
+  const r = await hxApi('/admin/messages/send', 'POST', {
+    title, body, kind: document.getElementById('hx-msg-kind').value,
+    username: toOne ? username : null,
+    pinned: document.getElementById('hx-msg-pin').checked,
+    send_push: document.getElementById('hx-msg-push').checked,
+    scheduled_at: sched || null, expires_at: exp || null
+  });
+  btn.disabled = false;
+  if(!r.ok){ showMsg('hx-msg-msg', hxErr(r), 'error'); return; }
+  const d = r.data;
+  let note = d.delivered_now ? `Sent to ${d.target}!` : `Scheduled for ${d.target}.`;
+  if(d.push === 'queued') note += ' Phone notifications are on their way.';
+  if(d.push === 'scheduled') note += ' Phone notifications will go out at that time.';
+  if(d.push === 'not_configured') note += ' (Phone notifications are not set up on the server, so it shows inside the app only.)';
+  showMsg('hx-msg-msg', note, 'success');
+  ['hx-msg-title','hx-msg-body','hx-msg-user','hx-msg-sched','hx-msg-exp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('hx-msg-tpl').value = '';
+  hxMsgHistory();
+}
+async function hxMsgHistory(){
+  const box = document.getElementById('hx-msg-history');
+  const r = await hxApi('/admin/messages?limit=50');
+  if(!r.ok){ box.innerHTML = `<p style="color:var(--danger);font-size:13px;">${esc(hxErr(r))}</p>`; return; }
+  box.innerHTML = hxTable(['Title','To','Type','When','Read','Push',''], (r.data || []).map(m => {
+    const future = m.scheduled_at && new Date(m.scheduled_at) > new Date();
+    return `<tr><td>${esc(m.title)}${m.pinned ? ' 📌' : ''}</td><td>${esc(m.target)}</td><td>${esc(m.kind)}</td>
+      <td>${future ? '⏰ ' : ''}${hxWhen(m.scheduled_at || m.created_at)}</td><td>${esc(m.read_count)} / ${esc(m.audience)}</td>
+      <td>${m.send_push ? (m.push_sent ? 'sent' : 'waiting') : '—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="hxMsgDelete(${m.id})">Delete</button></td></tr>`;
+  }));
+}
+async function hxMsgDelete(id){
+  if(!confirm('Delete this message for everyone?')) return;
+  const r = await hxApi(`/admin/messages/${id}`, 'DELETE');
+  if(!r.ok){ showMsg('hx-msg-msg', hxErr(r), 'error'); return; }
+  hxMsgHistory();
+}
+
+// ---------- Hub monitor ----------
+async function hxMonInit(){
+  if(!document.getElementById('hx-day-date').value) document.getElementById('hx-day-date').value = utcDay(0);
+  if(!Object.keys(HX.features).length){
+    const r = await hxApi('/admin/monitor/features');
+    if(r.ok){
+      HX.features = r.data.features || {};
+      document.getElementById('hx-who-feature').innerHTML = Object.keys(HX.features).map(k => `<option value="${esc(k)}">${esc(HX_FEATURE_NAMES[k] || k)}</option>`).join('');
+    }else{ showMsg('hx-who-msg', hxErr(r), 'error'); }
+  }
+  if(!document.getElementById('hx-usr-table').innerHTML) hxUsers(1);
+}
+async function hxWho(){
+  const feature = document.getElementById('hx-who-feature').value;
+  const days = document.getElementById('hx-who-days').value;
+  const out = document.getElementById('hx-who-out');
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  const r = await hxApi(`/admin/monitor/who-used?feature=${encodeURIComponent(feature)}&days=${days}&limit=200`);
+  if(!r.ok){ out.innerHTML = ''; showMsg('hx-who-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-who-msg').className = 'msg';
+  const d = r.data;
+  out.innerHTML = `<div class="stats-grid">${statBox(d.unique_users, 'Different students')}${statBox(d.total_uses, 'Total uses')}${statBox(d.anonymous_uses, 'Not tied to a student')}</div>`
+    + '<h3 style="margin:8px 0;">Students</h3>'
+    + hxTable(['Student','Times used','Last used',''], (d.users || []).map(u =>
+        `<tr><td>${esc(u.username)}</td><td>${esc(u.uses)}</td><td>${hxWhen(u.last_used)}</td>
+         <td><button class="btn btn-ghost btn-sm" data-u="${esc(u.username)}" onclick="hxUserDaily(this.dataset.u)">Daily usage</button></td></tr>`))
+    + ((d.top_details || []).length ? '<h3 style="margin:16px 0 8px;">Most used (exam / subject / topic)</h3>'
+        + hxTable(['What','Times'], d.top_details.map(x => `<tr><td>${esc(x.detail)}</td><td>${esc(x.count)}</td></tr>`)) : '');
+}
+async function hxDaily(){
+  const date = document.getElementById('hx-day-date').value || utcDay(0);
+  const out = document.getElementById('hx-day-out');
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  const r = await hxApi(`/admin/monitor/daily?date=${encodeURIComponent(date)}`);
+  if(!r.ok){ out.innerHTML = ''; showMsg('hx-day-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-day-msg').className = 'msg';
+  const d = r.data;
+  out.innerHTML = `<div class="stats-grid">${statBox(d.active_users, 'Active students')}${statBox(d.total_actions, 'Total actions')}</div>`
+    + '<h3 style="margin:8px 0;">What they did</h3>'
+    + hxTable(['Activity','Times'], Object.keys(d.by_action || {}).map(a => `<tr><td>${esc(labelFor(a))}</td><td>${esc(d.by_action[a])}</td></tr>`))
+    + '<h3 style="margin:16px 0 8px;">Most active that day</h3>'
+    + hxTable(['Student','Actions',''], (d.top_users || []).map(u => `<tr><td>${esc(u.username)}</td><td>${esc(u.actions)}</td>
+        <td><button class="btn btn-ghost btn-sm" data-u="${esc(u.username)}" onclick="hxUserDaily(this.dataset.u)">Daily usage</button></td></tr>`));
+}
+async function hxTrend(){
+  const out = document.getElementById('hx-day-out');
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  const r = await hxApi('/admin/monitor/trend?days=14');
+  if(!r.ok){ out.innerHTML = ''; showMsg('hx-day-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-day-msg').className = 'msg';
+  const rows = r.data.days || [];
+  const max = Math.max(1, ...rows.map(x => x.active_users));
+  out.innerHTML = hxTable(['Day','Active students','Actions',''], rows.map(x =>
+    `<tr><td>${esc(x.date)}</td><td>${esc(x.active_users)}</td><td>${esc(x.total_actions)}</td>
+     <td style="width:40%;"><div style="background:var(--green);height:8px;border-radius:4px;width:${Math.round(x.active_users / max * 100)}%;"></div></td></tr>`));
+}
+async function hxUsers(page){
+  HX.usersPage = page || 1;
+  const q = document.getElementById('hx-usr-search').value.trim();
+  const sort = document.getElementById('hx-usr-sort').value;
+  const box = document.getElementById('hx-usr-table');
+  box.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  const r = await hxApi(`/admin/users?search=${encodeURIComponent(q)}&sort=${sort}&page=${HX.usersPage}&limit=25`);
+  if(!r.ok){ box.innerHTML = ''; showMsg('hx-usr-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-usr-msg').className = 'msg';
+  const d = r.data;
+  HX.usersPages = Math.max(1, Math.ceil(d.total / d.limit));
+  box.innerHTML = hxTable(['Student','Name','Score','Streak','Last active','Actions','Plan',''], (d.users || []).map(u =>
+    `<tr><td>${esc(u.username)}</td><td>${esc(u.full_name || '—')}</td><td>${esc(u.score)}</td><td>${esc(u.streak)}</td>
+     <td>${hxWhen(u.last_active)}</td><td>${esc(u.total_actions)}</td><td>${u.is_premium ? '<span class="tag">Premium</span>' : '—'}</td>
+     <td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" data-u="${esc(u.username)}" onclick="hxUserDaily(this.dataset.u)">Daily usage</button>
+       <button class="btn btn-ghost btn-sm" data-u="${esc(u.username)}" onclick="hxMsgTo(this.dataset.u)">Message</button></td></tr>`));
+  document.getElementById('hx-usr-pager').innerHTML =
+    `<button class="btn btn-ghost btn-sm" ${HX.usersPage <= 1 ? 'disabled' : ''} onclick="hxUsers(${HX.usersPage - 1})">Previous</button>
+     <span style="font-size:12px;color:var(--muted);">Page ${HX.usersPage} of ${HX.usersPages} · ${esc(d.total)} students</span>
+     <button class="btn btn-ghost btn-sm" ${HX.usersPage >= HX.usersPages ? 'disabled' : ''} onclick="hxUsers(${HX.usersPage + 1})">Next</button>`;
+}
+async function hxUserDaily(username){
+  const out = document.getElementById('hx-usr-detail');
+  out.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  out.scrollIntoView({behavior: 'smooth', block: 'center'});
+  const r = await hxApi(`/admin/monitor/daily/${encodeURIComponent(username)}?days=30`);
+  if(!r.ok){ out.innerHTML = `<div class="msg error">${esc(hxErr(r))}</div>`; return; }
+  const d = r.data;
+  out.innerHTML = `<h3 style="margin-bottom:8px;">${esc(d.username)} — last 30 days</h3>
+    <div class="hint" style="margin:0 0 10px;">Score ${esc(d.score)} · Streak ${esc(d.streak)} · Coins ${esc(d.coins)} · Last active ${hxWhen(d.last_active)}</div>`
+    + hxTable(['Day','Total','What they did'], (d.days || []).map(x =>
+      `<tr><td>${esc(x.date)}</td><td>${esc(x.total)}</td><td>${Object.keys(x.actions).map(a => esc(labelFor(a)) + ' ×' + esc(x.actions[a])).join(', ')}</td></tr>`));
+}
+function hxMsgTo(username){
+  switchTab('hubmsg');
+  document.getElementById('hx-msg-target').value = 'one';
+  document.getElementById('hx-msg-user-wrap').classList.remove('hidden');
+  document.getElementById('hx-msg-user').value = username;
+  document.getElementById('hx-msg-title').focus();
+}
+async function hxPrune(){
+  const days = parseInt(document.getElementById('hx-prune-days').value, 10) || 180;
+  if(!confirm(`Delete all activity logs older than ${Math.max(30, days)} days? This cannot be undone.`)) return;
+  const r = await hxApi(`/admin/monitor/prune?days=${days}`, 'POST');
+  showMsg('hx-prune-msg', r.ok ? `Deleted ${r.data.deleted} old log entries.` : hxErr(r), r.ok ? 'success' : 'error');
+}
+
+// ---------- Blog ----------
+function hxBlogInit(){ hxBlogList(); hxBlogCatChange(); }
+function hxBlogCatChange(){
+  document.getElementById('hx-blog-students-wrap').classList.toggle('hidden', document.getElementById('hx-blog-cat').value !== 'top_students');
+}
+async function hxBlogPickImage(file){
+  if(!file) return;
+  try{
+    showMsg('hx-blog-msg', 'Uploading photo...', 'success');
+    const url = await uploadImage(file);
+    HX.blog.cover = url;
+    document.getElementById('hx-blog-cover').src = url;
+    document.getElementById('hx-blog-cover-wrap').classList.remove('hidden');
+    document.getElementById('hx-blog-msg').className = 'msg';
+  }catch(e){ showMsg('hx-blog-msg', e.message, 'error'); }
+  document.getElementById('hx-blog-file').value = '';
+}
+function hxBlogClearImage(){
+  HX.blog.cover = null;
+  document.getElementById('hx-blog-cover-wrap').classList.add('hidden');
+}
+function hxStudentsToLines(arr){
+  return (Array.isArray(arr) ? arr : []).map(s => [s.name || '', s.score == null ? '' : s.score, s.photo || ''].join(' | ').replace(/( \| )+$/, '')).join('\n');
+}
+function hxLinesToStudents(text){
+  return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const p = l.split('|').map(x => x.trim());
+    const o = {name: p[0] || ''};
+    if(p[1]) o.score = p[1];
+    if(p[2]) o.photo = p[2];
+    return o;
+  }).filter(o => o.name);
+}
+async function hxBlogTopSuggest(){
+  const r = await hxApi('/admin/blog/top-students-suggestions?limit=10');
+  if(!r.ok){ showMsg('hx-blog-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-blog-students').value = hxStudentsToLines((r.data.suggested_extra || []).map(s => ({name: s.name, score: s.score, photo: s.photo})));
+  showMsg('hx-blog-msg', 'Leaderboard added. Edit names or remove photos before you publish.', 'success');
+}
+function hxBlogReset(){
+  HX.blog.editing = null; HX.blog.cover = null;
+  ['hx-blog-title','hx-blog-excerpt','hx-blog-body','hx-blog-students'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('hx-blog-cat').value = 'education';
+  document.getElementById('hx-blog-pin').checked = false;
+  document.getElementById('hx-blog-pub').checked = true;
+  document.getElementById('hx-blog-cover-wrap').classList.add('hidden');
+  document.getElementById('hx-blog-form-title').textContent = 'New post';
+  document.getElementById('hx-blog-save').textContent = 'Publish post';
+  document.getElementById('hx-blog-cancel').classList.add('hidden');
+  hxBlogCatChange();
+}
+async function hxBlogSave(){
+  const title = document.getElementById('hx-blog-title').value.trim();
+  const body = document.getElementById('hx-blog-body').value.trim();
+  if(!title || !body){ showMsg('hx-blog-msg', 'A title and the post text are required', 'error'); return; }
+  const cat = document.getElementById('hx-blog-cat').value;
+  const students = cat === 'top_students' ? hxLinesToStudents(document.getElementById('hx-blog-students').value) : [];
+  const payload = {
+    title, body, category: cat,
+    excerpt: document.getElementById('hx-blog-excerpt').value.trim() || null,
+    cover_image_url: HX.blog.cover || null,
+    is_pinned: document.getElementById('hx-blog-pin').checked,
+    is_published: document.getElementById('hx-blog-pub').checked,
+    extra: students.length ? students : null
+  };
+  const editing = HX.blog.editing;
+  const btn = document.getElementById('hx-blog-save'); btn.disabled = true;
+  const r = await hxApi(editing ? `/admin/blog/posts/${editing}` : '/admin/blog/posts', editing ? 'PUT' : 'POST', payload);
+  btn.disabled = false;
+  if(!r.ok){ showMsg('hx-blog-msg', hxErr(r), 'error'); return; }
+  showMsg('hx-blog-msg', editing ? 'Post updated!' : (payload.is_published ? 'Post published! It is now on the app.' : 'Draft saved.'), 'success');
+  hxBlogReset(); hxBlogList();
+}
+async function hxBlogList(){
+  const box = document.getElementById('hx-blog-list');
+  const status = document.getElementById('hx-blog-filter').value;
+  const r = await hxApi(`/admin/blog/posts?status=${status}&limit=100`);
+  if(!r.ok){ box.innerHTML = `<p style="color:var(--danger);font-size:13px;">${esc(hxErr(r))}</p>`; return; }
+  HX.blog.posts = r.data.posts || [];
+  box.innerHTML = hxTable(['Title','Type','Status','Views','Date',''], HX.blog.posts.map(p =>
+    `<tr><td>${esc(p.title)}${p.is_pinned ? ' 📌' : ''}</td><td>${esc(p.category)}</td>
+     <td>${p.is_published ? '<span class="tag">Live</span>' : 'Draft'}</td><td>${esc(p.views)}</td><td>${hxWhen(p.created_at)}</td>
+     <td style="white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="hxBlogEdit(${p.id})">Edit</button>
+       <button class="btn btn-ghost btn-sm" onclick="hxBlogToggle(${p.id},'pin')">${p.is_pinned ? 'Unpin' : 'Pin'}</button>
+       <button class="btn btn-ghost btn-sm" onclick="hxBlogToggle(${p.id},'publish')">${p.is_published ? 'Hide' : 'Publish'}</button>
+       <button class="btn btn-danger btn-sm" onclick="hxBlogDelete(${p.id})">Delete</button></td></tr>`));
+}
+function hxBlogEdit(id){
+  const p = HX.blog.posts.find(x => x.id === id); if(!p) return;
+  HX.blog.editing = id; HX.blog.cover = p.cover_image_url || null;
+  document.getElementById('hx-blog-title').value = p.title || '';
+  document.getElementById('hx-blog-cat').value = p.category || 'education';
+  document.getElementById('hx-blog-excerpt').value = p.excerpt || '';
+  document.getElementById('hx-blog-body').value = p.body || '';
+  document.getElementById('hx-blog-students').value = hxStudentsToLines(p.extra);
+  document.getElementById('hx-blog-pin').checked = !!p.is_pinned;
+  document.getElementById('hx-blog-pub').checked = !!p.is_published;
+  if(p.cover_image_url){ document.getElementById('hx-blog-cover').src = p.cover_image_url; document.getElementById('hx-blog-cover-wrap').classList.remove('hidden'); }
+  else document.getElementById('hx-blog-cover-wrap').classList.add('hidden');
+  document.getElementById('hx-blog-form-title').textContent = 'Edit post';
+  document.getElementById('hx-blog-save').textContent = 'Save changes';
+  document.getElementById('hx-blog-cancel').classList.remove('hidden');
+  hxBlogCatChange();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+async function hxBlogToggle(id, what){
+  const r = await hxApi(`/admin/blog/posts/${id}/${what}`, 'POST', {});
+  if(!r.ok){ showMsg('hx-blog-msg', hxErr(r), 'error'); return; }
+  hxBlogList();
+}
+async function hxBlogDelete(id){
+  if(!confirm('Delete this post for good?')) return;
+  const r = await hxApi(`/admin/blog/posts/${id}`, 'DELETE');
+  if(!r.ok){ showMsg('hx-blog-msg', hxErr(r), 'error'); return; }
+  if(HX.blog.editing === id) hxBlogReset();
+  hxBlogList();
+}
+
+// ---------- Live class ----------
+function hxLcInit(){ hxLcRooms(); }
+async function hxLcRooms(){
+  const box = document.getElementById('hx-lc-rooms');
+  const r = await hxApi('/admin/liveclass/rooms');
+  if(!r.ok){ box.innerHTML = ''; showMsg('hx-lc-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-lc-msg').className = 'msg';
+  box.innerHTML = hxTable(['Room','Messages','Last message','Online now',''], (r.data.rooms || []).map(x =>
+    `<tr><td>${esc(x.room)}</td><td>${esc(x.messages)}</td><td>${hxWhen(x.last_message_at)}</td><td>${esc(x.online_now)}</td>
+     <td><button class="btn btn-primary btn-sm" data-r="${esc(x.room)}" onclick="hxLcOpen(this.dataset.r)">Open</button></td></tr>`));
+}
+async function hxLcOpen(room){
+  if(!room) return;
+  HX.lc.room = room;
+  document.getElementById('hx-lc-room-card').classList.remove('hidden');
+  document.getElementById('hx-lc-room-title').textContent = 'Room: ' + room;
+  const box = document.getElementById('hx-lc-messages');
+  box.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading...</p>';
+  const r = await hxApi(`/admin/liveclass/${encodeURIComponent(room)}/messages?limit=80`);
+  if(!r.ok){ box.innerHTML = ''; showMsg('hx-lc-msg', hxErr(r), 'error'); return; }
+  const msgs = r.data.messages || [];
+  box.innerHTML = msgs.length ? msgs.map(m => {
+    const gone = m.was_deleted;
+    const text = gone ? '(deleted)' : (m.message_text || (m.image_url ? '📷 photo' : (m.file_url ? '📎 file' : '')));
+    return `<div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;${gone ? 'opacity:.5;' : ''}">
+      <div style="flex:1;font-size:13px;"><b>${esc(m.sender_username)}</b> <span style="color:var(--muted);font-size:11px;">${hxWhen(m.created_at)}${m.message_type !== 'text' ? ' · ' + esc(m.message_type) : ''}</span><br>${esc(text)}</div>
+      ${gone ? '' : `<button class="btn btn-danger btn-sm" onclick="hxLcDelete(${m.id})">Delete</button>`}</div>`;
+  }).join('') : '<p style="color:var(--muted);font-size:13px;">No messages in this room yet</p>';
+  box.scrollTop = box.scrollHeight;
+}
+async function hxLcDelete(id){
+  if(!confirm('Remove this message for everyone in the class?')) return;
+  const r = await hxApi(`/admin/liveclass/messages/${id}`, 'DELETE');
+  if(!r.ok){ showMsg('hx-lc-msg', hxErr(r), 'error'); return; }
+  hxLcOpen(HX.lc.room);
+}
+async function hxLcAnnounce(){
+  const t = document.getElementById('hx-lc-announce').value.trim();
+  if(!t){ showMsg('hx-lc-msg', 'Write the announcement first', 'error'); return; }
+  const r = await hxApi(`/admin/liveclass/${encodeURIComponent(HX.lc.room)}/send`, 'POST', {message_text: t});
+  if(!r.ok){ showMsg('hx-lc-msg', hxErr(r), 'error'); return; }
+  document.getElementById('hx-lc-announce').value = '';
+  showMsg('hx-lc-msg', 'Announcement sent to the class!', 'success');
+  hxLcOpen(HX.lc.room);
+}
+
+</script>
+</body>
+</html>
